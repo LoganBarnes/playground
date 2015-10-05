@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width">
+		<title>Playground</title>
+
+		<link rel="icon" href="../favicon.ico" type="image/x-icon" />
+
+		<!-- styles -->
+		<link type="text/css" href="menu/styles/style.css" rel="stylesheet"/>
+
+	</head>
+	<body>
+
+		<div id="page">
+			<section id="container">
+
+				<div class="clear" id="small_space"></div>
+
+<!-- 			canvas 				-->
+
+				<div class="float_center">
+					<div id="canvas_div" class="child">
+						<canvas id="canvas"></canvas>
+					</div>
+				</div>
+
+
+				<div id="summary" style="display:none">
+
+<!-- 				gravity 				-->
+
+					<div class="float_center hidden" id="gravity_div">
+						<div class="child">
+							<a href="gravity3D">
+								<h2 class="text_center"> Gravity Simulator </h2>
+								<p class="text_center">
+									A particle simulation showing the effects of gravity on masses in 3D space.
+									Each object applies a force on every other object in the system.
+									When objects collide they become one mass with an increased gravitational pull.
+									Sizes are based on masses and densities and gravitational forces are based on Newton's Law of Universal Gravitation:
+								</p>
+								<img style="margin: auto; display: block" width="109px" src="menu/res/images/gravityEq.png" />
+								<br>
+								<p class="text_center">
+									<i>F</i> - Force between two objects<br>
+									<i>G</i> - Gravitational constant<br>
+									<i>m<sub>1</sub></i> - mass of object 1<br>
+									<i>m<sub>2</sub></i> - mass of object 2<br>
+									<i>r</i> - distance between objects
+								</p>
+								<p class="text_center">
+									This is an O(n<sup>2</sup>) system (every particle interacts with every other particle) however the calculations are completed on the GPU to optimize performance.
+								</p>
+								<div class="preview">
+									<img class="gfyitem" data-id="GivingCornyBarasingha" />
+								</div>
+							</a>
+						</div>
+						<div class="clear"></div>
+					</div>
+
+
+<!-- 				rendering					-->
+
+					<div class="float_center hidden" id="render_div">
+						<div class="child">
+							<a href="renderer">
+								<h2 class="text_center"> Renderer </h2>
+								<p class="text_center">
+									Currently, just a real-time raytracer.
+								</p>
+								<div class="preview">
+									<img class="gfyitem" data-id="UncommonAliveAquaticleech" />
+								</div>
+							</a>
+						</div>
+						<div class="clear"></div>
+					</div>
+
+
+<!-- 				music 					-->
+
+					<div class="float_center hidden" id="music_div">
+						<div class="child">
+							<a href="interactiveMusic">
+								<h2 class="text_center"> Interactive Music Player </h2>
+								<p class="text_center">
+									A particle simulation showing the effects of gravity on masses in 3D space.
+									Each object applies a force on every other object in the system.
+									When objects collide they become one mass with an increased gravitational pull.
+									Sizes are based on masses and densities and gravitational forces are based on Newton's Law of Universal Gravitation:
+								</p>
+								<p class="text_center">
+									This is an O(n<sup>2</sup>) system (every particle interacts with every other particle) however the calculations are completed on the GPU to optimize performance.
+								</p>
+								<h3 class="text_center">Controls</h3>
+								<p class="text_center">
+									<i>(These are temporary. It will be more interactive in the future.)</i><br><br>
+									SHIFT + LEFT MOUSE DRAG<br>Rotate shapes around center.<br><br>
+									MOUSE WHEEL<br>Zoom in/out on center.<br><br>
+									SPACE BAR<br>Start/Stop Music.
+								</p>
+								<div class="preview">
+									<img class="gfyitem" data-id="ColorlessSimilarHoatzin" />
+								</div>
+							</a>
+						</div>
+						<div class="clear"></div>
+					</div>
+
+
+<!-- 				space (currently just a gpu restpage)					-->
+
+					<div class="float_center hidden" id="space_div">
+						<div class="child">
+							<a href="space">
+								<h2 class="text_center"> Spaceship Simulator </h2>
+								<p class="text_center">
+									Work in progress. Nothing to see here. Move along.
+								</p>
+								<div class="preview">
+									<img src="menu/res/images/space.png" alt="space" width="100%" />
+								</div>
+								<p class="text_center">
+									But actually, there's not much going on yet.
+								</p>
+							</a>
+						</div>
+						<div class="clear"></div>
+					</div>
+
+
+					<div class="clear" id="small_space"></div>
+				</div>
+			</section>
+
+			<footer>
+				Copyright © loganbarnes.net
+			</footer>
+		</div>
+
+		<div id="loading"></div>
+
+		<!-- gfy script -->
+		<script type="text/javascript" src="http://test.gfycat.com/gfycat_test_june25.js"></script>
+
+		<!-- jQuery -->
+		<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+		<!-- script loading-->
+		<script type="text/javascript" src="../commonScripts/scriptLoader.js"></script>
+		<script type="text/javascript">
+
+			loadScripts([	"../commonScripts/util/util.min.js",
+							"../commonScripts/shapes/shapes.min.js",
+							"../commonScripts/webglLib/webgl-lib.js",
+							"menu/scripts/webgl-title.js"],
+				function() {
+					main();
+			});
+
+		</script>
+
+	</body>
+</html>

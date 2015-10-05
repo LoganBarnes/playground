@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width">
+		<title>Space</title>
+
+		<!-- styles -->
+		<link type="text/css" href="styles/style.css" rel="stylesheet"></link>
+
+
+
+	</head>
+	<body>
+
+		<div id="page">
+			<div id="canvas_div">
+				<canvas id="canvas"></canvas>
+				<div id="info"></div>
+			</div>
+		</div>
+
+		<div id="loading"></div>
+
+		<!-- Leap Motion -->
+		<script src="//js.leapmotion.com/leap-0.6.3.js"></script>
+		<!-- <script src="//js.leapmotion.com/leap-0.6.3.min.js"></script> -->
+
+		<!-- script loading-->
+		<script type="text/javascript" src="../commonScripts/scriptLoader.js"></script>
+		<script type="text/javascript">
+
+			loadScripts([	"../commonScripts/util/util.min.js",
+							"../commonScripts/shapes/shapes.min.js",
+							"../commonScripts/webglLib/webgl-lib.js",
+							"scripts/webgl-space.js"],
+				function() {
+					main();
+			});
+
+		</script>
+		
+	</body>
+</html>

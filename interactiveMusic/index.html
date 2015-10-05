@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width">
+		<title>Audio Editor</title>
+
+		<!-- styles -->
+		<link type="text/css" href="styles/style.css" rel="stylesheet"></link>
+
+	</head>
+	<body>
+<!-- 		<div class="controls">
+			<button class="play" disabled>Loading...</button>
+			<button class="stop" disabled>Stop</button>
+		</div>
+		<div class="play-controls">
+			<label for="loop">loop
+				<input type="checkbox" name="loop" class="loop" />
+			</label>
+			<label for="loop-start">loop start (seconds)
+				<input class="loop-start" type="number" min="0" max="10" step="1" value="0" name="loop-start" disabled />
+			</label>
+			<label for="loop-end">loop end (seconds)
+				<input class="loop-end" type="number" min="0" max="10" step="1" value="0" name="loop-end" disabled />
+			</label>
+			<hr>
+			<label for="playbackRate">playback rate <span class="rate">.85</span>
+				<input class="playback-slider" name="playbackRate" type="range" min="0" max="10" step="0.001" value="0.85" disabled />
+			</label>
+		</div> -->
+		<div class="visuals">
+			<canvas id="canvas" width="640" height="500"></canvas>
+		</div>
+
+		<!-- script loading-->
+		<script type="text/javascript" src="../commonScripts/scriptLoader.js"></script>
+		<script type="text/javascript">
+
+			loadScripts([	"../commonScripts/util/util.min.js",
+							"../commonScripts/shapes/shapes.min.js",
+							"../commonScripts/webglLib/webgl-lib.js",
+							"scripts/visuals.js",
+							"scripts/audio.js",
+							"scripts/main.js"],
+				function() {
+					main();
+			});
+
+		</script>
+		
+	</body>
+</html>

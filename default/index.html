@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width">
+		<title>Default</title>
+
+		<!-- styles -->
+		<link type="text/css" href="styles/style.css" rel="stylesheet"></link>
+
+
+
+	</head>
+	<body>
+
+		<div id="page">
+			<div id="canvas_div">
+				<canvas id="canvas"></canvas>
+			</div>
+		</div>
+
+		<div id="loading"></div>
+		
+		<!-- jQuery -->
+		<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+		<!-- script loading-->
+		<script type="text/javascript" src="../commonScripts/scriptLoader.js"></script>
+		<script type="text/javascript">
+
+			loadScripts([	"../commonScripts/util/util.min.js",
+							"../commonScripts/shapes/shapes.min.js",
+							"../commonScripts/webglLib/webgl-lib.js",
+							"scripts/webgl-default.js"],
+				function() {
+					main();
+			});
+
+		</script>
+		
+	</body>
+</html>

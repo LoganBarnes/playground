@@ -1,0 +1,89 @@
+
+
+html, body, #page {
+	height: auto;
+	width: auto;
+	/*background-color: yellow;*/
+	font-family: sans-serif;
+} 
+
+h2 {
+	width: 100%;
+	text-align: center;
+	padding: 10px;
+}
+label {
+	display: block;
+	padding-left: 10px;
+	/*font-family: monospace;*/
+	/*line-height: 20px;*/
+	/*text-shadow: 1px 1px 3px #ccc;*/
+}
+input {
+	display: inline-block;
+	float: right;
+	width: 35%;
+	padding-right: 10px;
+	min-width: 100px;
+}
+span {
+	display: inline-block;
+	margin-left: 10px;
+	width: 50px;
+	text-align: center;
+	font-weight: bold;
+	border: 1px solid #efefef;
+	border-radius: 3px;
+	background-color: white;
+}
+
+#options_div {
+	/*float: left;*/
+	/*background-color: green;*/
+	padding: 20px;
+	margin-left: 51%;
+	width: auto;
+	height: 100%;
+}
+
+#canvas_div {
+	float: left;
+	width: 50%;
+	max-width: 500px;
+	max-height: 500px;
+	min-width: 300px;
+	min-height: 300px;
+	/*background-color: black;*/
+	/*padding: 20px;*/
+}
+
+#global_controls {
+	width: 100%;
+	/*margin: 20px;*/
+	padding-bottom: 20px;
+}
+
+.brightness-slider {
+	width: 95%;
+}
+
+
+
+/*#loading_div {
+	display: none;
+}
+#loading {
+	float: left;
+	display: block;*/
+	/*position: absolute;*/
+	/*top: 0;*/
+	/*left: 0;*/
+/*	z-index: 100;
+	width: 50%;
+	height: 50%;
+	background-color: rgba(192, 192, 192, 0.5);
+	background-image: url("http://i.stack.imgur.com/MnyxU.gif");
+	background-repeat: no-repeat;
+	background-position: center;
+}*/
+

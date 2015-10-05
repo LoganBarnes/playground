@@ -1,0 +1,53 @@
+
+body {
+	background-color: rgb(255,255,255);
+	background-color: gray;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+}
+
+#canvas_div {
+	width: 512px;
+	height: 512px;
+}
+
+#options {
+	float: left;
+}
+
+img, video {
+	width: 128px;
+	height: 128px;
+	padding: 0;
+	margin: 0;
+}
+tr, button {
+	width: 132px;
+	height: 132px;
+	padding: 0;
+	margin: 0;
+}
+#video {
+	transform: rotateY(180deg);
+	-webkit-transform:rotateY(180deg); /* Safari and Chrome */
+	-moz-transform:rotateY(180deg); /* Firefox */
+}
+
+
+#page {
+	display: none;
+	float: left;
+}
+#loading {
+	float: left;
+	display: block;
+	z-index: 100;
+	width: 512px;
+	height: 512px;
+	background-color: rgba(192, 192, 192, 0.5);
+	background-image: url("http://i.stack.imgur.com/MnyxU.gif");
+	background-repeat: no-repeat;
+	background-position: center;
+}
+

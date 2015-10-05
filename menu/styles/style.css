@@ -1,0 +1,95 @@
+footer {
+  background-color: rgba(255, 255, 255, 0);
+  color: gray;
+  clear: both;
+  text-align: center;
+  padding: 5px;
+}
+
+/* The Magic Float Center Code */
+.float_center {
+  float: right;
+
+  position: relative;
+  left: -50%; /* or right 50% */
+  /*text-align: left;*/
+  /*background-color: blue;*/
+}
+.float_center > .child {
+  position: relative;
+  left: 50%;
+  /*background-color: yellow;*/
+}
+.hidden {
+  display:none;
+  /*height: 0px;*/
+}
+
+
+
+/* style */
+body {
+  height: auto;
+  width: auto;
+  background-image: url("../res/images/creases.png");
+  background-repeat: no-repeat;/*repeat-x;*/
+  background-size: cover;
+  /*background-position: top;*/
+  background-attachment: fixed;
+  background-color: black;
+  font-family: sans-serif;
+}
+.text_right {
+  text-align: right;
+}
+.text_center {
+  text-align: center;
+}
+.clear {
+  clear:both;
+}
+.preview {
+  width: 300px;
+  display: block;
+  margin: auto;
+}
+
+#big_space {
+  padding: 50px;
+}
+#small_space {
+  padding: 20px;
+}
+#container {
+  width: 50%;
+  min-width: 400px;
+  margin: 0 auto 0 auto;
+  padding: 20px;
+}
+#summary {
+  clear: both;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+}
+a {
+  text-decoration: none;
+  color: black;
+  /*color: rgba(70, 70, 70, 255);*/
+}
+#page {
+    display: none;
+}
+#loading {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(192, 192, 192, 0.5);
+    background-image: url("http://i.stack.imgur.com/MnyxU.gif");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+

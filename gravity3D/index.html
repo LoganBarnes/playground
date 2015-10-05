@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>3D Gravity Simulator</title>
+		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+		<link type="text/css" href="styles/style.css" rel="stylesheet"/>
+
+	</head>
+
+	<body>
+		<div id="page">
+			<div class="overlay top left" id="settings">
+				<h3 id="settingsHeader"> Settings </h3>
+
+				<div id="settingsToggle">
+
+					<label for="timeScale">Time Scale</label>
+					<input class="slider" type="range" id="timeScale" type="number" min="0.1" max="5.0" step="0.1" value="1.0" >
+					<input type="text" id="timeScaleText" value="1.0"><br>
+
+					<label for="speed">Simulation Speed</label>
+					<input class="slider" type="range" id="speed" type="number" min="1" max="5" step="1" value="1" >
+					<input type="text" id="speedText" value="x1"><br>
+
+					<label for="gravity">Gravity Constant</label>
+					<input class="slider" type="range" id="gravity" type="number" min="0.01" max="15.0" step="0.01" value="1.0" >
+					<input type="text" id="gravityText" value="1.0"><br>
+
+					<input type="checkbox" id="collide" checked> Enable Collisions (C)<br>
+					<input type="checkbox" id="tracker"> Move Origin to Largest Particle (O)<br>
+					<input type="checkbox" id="axes" checked> Show Axes (A)<br>
+
+					<label for="block">New Block Dimension</label>
+					<input class="slider" type="range" id="block" type="number" min="2" max="25" step="1" value="10" >
+					<input type="text" id="blockText" value="10"><br>
+
+					<label for="random">New Block Randomization</label>
+					<input class="slider" type="range" id="random" type="number" min="0" max="10" step="1" value="3" >
+					<input type="text" id="randomText" value="3"><br>
+
+					<p></p>
+				</div>
+
+			</div>
+
+			<div class="overlay top right" id="controls">
+				<h3 id="controlsHeader"> Controls </h3>
+
+				<div id="controlsToggle">
+					<p class="text_center">
+						LEFT MOUSE DRAG<br>Move whole particle system perpendicular to the camera.<br><br>
+						MOUSE WHEEL<br>Move whole particle system closer or farther from the camera.<br><br>
+						<strong><u>CAMERA</u></strong><br>(hold SHIFT):<br><br>
+						LEFT MOUSE DRAG<br>Orbit around origin.<br><br>
+						MOUSE WHEEL<br>Zoom in/out on origin.
+					</p>
+
+					<p></p>
+				</div>
+
+			</div>
+
+			<div class="overlay bottom left" id="info">
+				<p>Total Particles: 0</p>
+			</div>
+
+			<div class="overlay bottom right" id="error"></div>
+
+			<div id="canvas_div">
+				<canvas id="canvas"></canvas>
+			</div>
+		</div>
+
+		<div id="loading"></div>
+
+		<!-- script loading-->
+		<script type="text/javascript" src="../commonScripts/scriptLoader.js"></script>
+		<script type="text/javascript">
+
+			loadScripts([	"../commonScripts/util/util.min.js",
+							"../commonScripts/shapes/shapes.min.js",
+							"../commonScripts/webglLib/webgl-lib.js",
+							"scripts/webgl-gravity.js"],
+				function() {
+					main();
+			});
+
+		</script>
+
+	</body>
+</html>
