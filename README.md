@@ -1,17 +1,27 @@
 # Playground
 
-A place to mess around with web graphics and audio.  <a href="http://loganbarnes.net/playground" target="_blank">Live demo</a> looks eerily like the readme -.-
+A place to mess around with web graphics and audio.  <a href="http://playground.loganbarnes.net/playground" target="_blank">Live demo</a>.
 
-### 3D Gravity Simulator (early stages)
+### 3D Gravity Simulator
 
-![](./res/images/gravity.gif)
-
-<a href="http://loganbarnes.net/playground/gravity3D" target="_blank">Gravity sim in action</a>. Use SHIFT + LEFT MOUSE DRAG to move the camera.
+<a href="http://playground.loganbarnes.net/gravity3D" target="_blank">Particles moving around</a>.
 
 
+### 3D Interactive Audio Player/Editor (early stages)
 
-### 3D Interactive Audio Player/Editor (also early stages)
+<a href="http://playground.loganbarnes.net/interactiveMusic" target="_blank">Music being played</a>. Not so interactive yet.
 
-![](./res/images/music.gif)
 
-<a href="http://loganbarnes.net/playground/interactiveMusic" target="_blank">Music being played</a>. Not so interactive yet but use SHIFT + LEFT MOUSE DRAG to move the camera.
+### Image Frequency Filtering
+
+<a href="http://playground.loganbarnes.net/fft" target="_blank">Images being filtered</a>.
+
+
+### Ray Tracer
+
+<a href="http://playground.loganbarnes.net/render" target="_blank">Shapes being drawn</a>.
+
+
+### Demo Scene
+
+<a href="http://playground.loganbarnes.net/default" target="_blank">Shapes, models, cubemaps, and lights</a>.
