@@ -1,6 +1,6 @@
 # Playground
 
-A place to mess around with web graphics and audio.  <a href="http://playground.loganbarnes.net/playground" target="_blank">Live demo</a>.
+A place to mess around with web graphics and audio.  <a href="http://playground.loganbarnes.net" target="_blank">Live demo</a>.
 
 ### 3D Gravity Simulator
 
@@ -19,7 +19,7 @@ A place to mess around with web graphics and audio.  <a href="http://playground.
 
 ### Ray Tracer
 
-<a href="http://playground.loganbarnes.net/render" target="_blank">Shapes</a> being drawn.
+<a href="http://playground.loganbarnes.net/renderer" target="_blank">Shapes</a> being drawn.
 
 
 ### Demo Scene
