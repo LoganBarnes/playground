@@ -407,11 +407,11 @@ SpaceShip.prototype.printInfo = function(isManual) {
 				vel[2].toFixed(3) + ", " +
 				"<br/> Pitch Velocity: " + angVel[0].toFixed(3) + ", " +
 				"<br/> Yaw Velocity: " + angVel[1].toFixed(3) + ", " +
-				"<br/> Roll Velocity: " + angVel[2].toFixed(3) + ", " +
-				"<br/> Angular Velocity: " +
-				this.angVel[0].toFixed(3) + ", " +
-				this.angVel[1].toFixed(3) + ", " +
-				this.angVel[2].toFixed(3) + ", ";
+				"<br/> Roll Velocity: " + angVel[2].toFixed(3);// + ", " +
+				// "<br/> Angular Velocity: " +
+				// this.angVel[0].toFixed(3) + ", " +
+				// this.angVel[1].toFixed(3) + ", " +
+				// this.angVel[2].toFixed(3) + ", ";
 
 	if (isManual) {
 		str += "<br/><span style='color: red'>MANUAL CONTROLS</span>"
