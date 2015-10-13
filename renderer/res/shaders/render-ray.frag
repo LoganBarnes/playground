@@ -40,6 +40,13 @@ struct Shape
 	vec4 settings; // shine, refractive index, selected, outer radius (torus/hollowCyl)
 };
 
+struct Light
+{
+	int type;
+	vec3 posDir;
+	vec3 radiance; // w is attenuation radius
+};
+
 // ray for raytracing
 struct Ray
 {
@@ -59,6 +66,7 @@ struct Intersection
 };
 
 const int MAX_SHAPES = 10;
+const int MAX_LIGHTS = 1;
 
 uniform mat4 uScaleViewInv;
 uniform vec4 uEyePos;
@@ -67,10 +75,12 @@ uniform vec2 uViewport;
 uniform Shape shapes[MAX_SHAPES];
 uniform int uNumShapes;
 
-uniform vec3 uLightLocation;
+uniform Light lights[MAX_LIGHTS];
+// uniform int uNumLights;
 // uniform sampler2D uNormalTex;
 
 // global vars
+uniform bool uAntialiasing;
 uniform bool uUseShadows;
 uniform float uBrightness;
 
@@ -904,7 +914,7 @@ vec4 raytrace(in Ray r)
 
 	vec3 p = (r.o + norm.w * r.d) + (norm.xyz * EPS);
 
-	vec3 vecToLight = uLightLocation - p;
+	vec3 vecToLight = lights[0].posDir - p;
 	Ray rayToLight;
 	initRay(rayToLight, p + norm.xyz * EPS, normalize(vecToLight));
 
@@ -944,16 +954,32 @@ void main ()
 	vec4 color = vec4(0.0);
 	vec2 offset[5];
 
-	offset[0] = vec2(-0.25);
-	offset[1] = vec2(0.25, -0.25); 
-	offset[2] = vec2(0.0); 
-	offset[3] = vec2(-0.25, 0.25); 
-	offset[4] = vec2(0.25);
-
-	for (int i = 0; i < 5; ++i)
+	if (uAntialiasing) // anti alliasing
 	{
-		vec4 pos = vec4(((gl_FragCoord.xy + offset[i])* 2.0 )/ uViewport - vec2(1, 1), -1, 1);
-		// vec4 pos = vec4((vec2(460.5, 226.5) * 2.0 )/ uViewport - vec2(1, 1), -1, 1);
+		offset[0] = vec2(-0.25);
+		offset[1] = vec2(0.25, -0.25); 
+		offset[2] = vec2(0.0); 
+		offset[3] = vec2(-0.25, 0.25); 
+		offset[4] = vec2(0.25);
+
+		for (int i = 0; i < 5; ++i)
+		{
+			vec4 pos = vec4(((gl_FragCoord.xy + offset[i]) * 2.0 ) / uViewport - vec2(1, 1), -1, 1);
+
+			Ray ray; // new ray for this fragment
+
+			ray.d = vec3(uScaleViewInv * pos);
+			ray.d = normalize(ray.d - uEyePos.xyz); // ray direction
+			initRay(ray, uEyePos.xyz, ray.d);
+
+			// use ray
+			color += raytrace(ray);
+		}
+		color /= 5.0;
+	}
+	else
+	{
+		vec4 pos = vec4((gl_FragCoord.xy * 2.0 ) / uViewport - vec2(1, 1), -1, 1);
 
 		Ray ray; // new ray for this fragment
 
@@ -964,7 +990,6 @@ void main ()
 		// use ray
 		color += raytrace(ray);
 	}
-	color /= 5.0;
 
 	color.xyz = clamp((color.xyz * uBrightness) / (R * 1.5), 0.0, 1.0);
 	gl_FragColor = color;

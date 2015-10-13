@@ -7,7 +7,7 @@ function Sphere (longitudeBands, latitudeBands, radius) {
 	Shape3D.call(this, longitudeBands, latitudeBands);
 
 	this.radius = radius;
-};
+}
 
 
 Sphere.prototype = Object.create(Shape3D.prototype);
@@ -131,7 +131,7 @@ Sphere.prototype.createVBO = function(gl, useNormals, useTexCoords) {
 		this.vbo.itemSize += 2;
 
 	this.vbo.numItems = data.length / this.vbo.itemSize;
-};
+}
 
 /*
  * ro 	- 	ray origin

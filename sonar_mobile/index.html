@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width">
+
+		<title>Sonar Test</title>
+
+		<!-- scripts -->
+		<!-- <link type="text/css" href="styles/style.css" rel="stylesheet"/> -->
+
+	</head>
+
+	<body>
+		<div id="page">
+			<h1>Sonar Test</h1>
+			<button>Make sine tone</button>
+			<pre></pre>
+			<canvas id="canvas" width="800" height="100"></canvas>
+		</div>
+		<div id="loading"></div>
+
+
+		<!-- jQuery -->
+		<!-- // <script src="//code.jquery.com/jquery-1.11.1.min.js"></script> -->
+
+		<!-- script loading-->
+		<script type="text/javascript" src="../commonScripts/scriptLoader.js"></script>
+		<script type="text/javascript">
+
+			loadScripts([	"scripts/sonar.js"],
+				function() {
+					// main();
+				}
+			);
+		</script>
+
+	</body>
+</html>

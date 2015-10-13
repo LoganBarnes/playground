@@ -94,7 +94,7 @@ void main()
 	vec3 pos = vec3(aPosition);
 	vec3 norm = vec3(aNormal);
 
-	if (uShapeSettings[0] > 0.5)
+	if (uShapeSettings[0] > 0.5 && uShapeSettings[1] < 0.5)
 		calcVertex(pos, norm);
 	
 	vec4 vertexWorld = uMMatrix * vec4(pos, 1.0);

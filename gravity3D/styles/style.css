@@ -36,6 +36,9 @@ canvas {
 .bottom {
 	bottom: 0;
 }
+.float_right {
+	float: right;
+}
 
 #settingsToggle {
 	display: none;
@@ -53,6 +56,9 @@ canvas {
 	color: red;
 	border: none;
 }
+input[type=button] {
+	height: 25px;
+}
 
 input[type=range] {
 	width: 250px;
@@ -63,6 +69,9 @@ input[type=text] {
 }
 #gravity {
 	width: 420px;
+}
+#density {
+	width: 427px;
 }
 
 

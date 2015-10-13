@@ -1,5 +1,4 @@
 
-var internet = true;
 
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
 var variable = [];
@@ -29,9 +28,6 @@ var SpaceShip = function(spaceLib) {
 	this.invRot = mat4.create();
 	this.model = mat4.create();
 	this.invModel = mat4.create();
-
-	// mat4.rotate(this.rot, this.rot, degToRad(90), [1, 0, 0]);
-	// mat4.invert(this.invRot, this.rot);
 
 	this.goalVel = vec3.create();
 	this.goalAngVel = vec3.create();
@@ -114,34 +110,6 @@ var SpaceShip = function(spaceLib) {
 	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 	this.boosters[-BoostType.PORT_AFT_LIFT] = this.prims[this.prims.length - 1];
-
-	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [3, -0.5, -3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
-	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
-	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
-	this.boosters[BoostType.STARBOARD_BOW_LIFT] = this.prims[this.prims.length - 1];
-
-	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [3, 0.5, -3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
-	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
-	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
-	this.boosters[-BoostType.STARBOARD_BOW_LIFT] = this.prims[this.prims.length - 1];
-
-	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [-3, -0.5, -3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
-	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
-	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
-	this.boosters[BoostType.PORT_BOW_LIFT] = this.prims[this.prims.length - 1];
-
-	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [-3, 0.5, -3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
-	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
-	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
-	this.boosters[-BoostType.PORT_BOW_LIFT] = this.prims[this.prims.length - 1];
 }
 
 SpaceShip.prototype.updateModel = function() {
@@ -216,8 +184,8 @@ SpaceShip.prototype.applyBoost = function(type, strength) {
 SpaceShip.prototype.applyForce = function(force, point) {
 
 	// rotate vectors
-	// vec3.transformMat4(force, force, this.rot);
-	// vec3.transformMat4(point, point, this.rot);
+	vec3.transformMat4(force, force, this.rot);
+	vec3.transformMat4(point, point, this.rot);
 
 	// torque
 	var temp = vec3.create();
@@ -228,7 +196,7 @@ SpaceShip.prototype.applyForce = function(force, point) {
 	vec3.add(this.force, this.force, force);
 }
 
-var k = 0.1;
+var k = 0.05;
 SpaceShip.prototype.determineBoost = function(secs) {
 
 	var accel = vec3.create();
@@ -238,15 +206,6 @@ SpaceShip.prototype.determineBoost = function(secs) {
 	// k = 0.5;
 
 	//////////////// LINEAR ////////////////
-	if (Math.abs(this.vel[0]) < 0.001) {
-		this.vel[0] = 0.0;
-	}
-	if (Math.abs(this.vel[1]) < 0.001) {
-		this.vel[1] = 0.0;
-	}
-	if (Math.abs(this.vel[2]) < 0.001) {
-		this.vel[2] = 0.0;
-	}
 	vec3.transformMat4(vel, this.vel, this.invRot);
 
 	vec3.subtract(accel, this.goalVel, vel);
@@ -266,15 +225,6 @@ SpaceShip.prototype.determineBoost = function(secs) {
 	this.applyBoost(BoostType.STRAFE, accel[0]);
 
 	//////////////// ANGULAR ////////////////
-	if (Math.abs(this.angVel[0]) < 0.001) {
-		this.angVel[0] = 0.0;
-	}
-	if (Math.abs(this.angVel[1]) < 0.001) {
-		this.angVel[1] = 0.0;
-	}
-	if (Math.abs(this.angVel[2]) < 0.001) {
-		this.angVel[2] = 0.0;
-	}
 	vec3.transformMat4(angVel, this.angVel, this.invRot);
 
 	vec3.subtract(accel, this.goalAngVel, angVel);
@@ -320,7 +270,6 @@ SpaceShip.prototype.update = function(secs, useGoalVel, spaceLib, program) {
 	// F = m * a --> a = F * m-1
 	vec3.scale(accel, this.force, this.invMass);
 	// v = v + a * t
-	vec3.transformMat4(accel, accel, this.rot); // vel is position here
 	vec3.scale(accel, accel, secs);
 	vec3.add(this.vel, this.vel, accel);
 	// p = p + v * t
@@ -333,9 +282,9 @@ SpaceShip.prototype.update = function(secs, useGoalVel, spaceLib, program) {
 
 	// angular calculations
 	// torque = I * a --> a = torque * I-1
-	vec3.transformMat3(accel, this.torque, this.invI);
+	vec3.transformMat3(accel, this.torque, this.invIRot);
+	// vec3.transformMat4(accel, accel, this.rot);
 	// v = v + a * t;
-	vec3.transformMat4(accel, accel, this.rot);
 	vec3.scale(accel, accel, secs);
 	vec3.add(this.angVel, this.angVel, accel);
 	// p = p + v * t
@@ -343,6 +292,9 @@ SpaceShip.prototype.update = function(secs, useGoalVel, spaceLib, program) {
 
 	vec3.normalize(axis, vel);
 	angle = vec3.length(vel);
+
+	mat4.rotate(this.IRot, this.I, degToRad(axis), angle);
+	mat4.invert(this.invIRot, this.IRot);
 
 	// update trans with angular position
 	var trans = mat4.create();
@@ -361,27 +313,12 @@ SpaceShip.prototype.update = function(secs, useGoalVel, spaceLib, program) {
 	vec3.transformMat4(relTorque, this.torque, this.invRot);
 
 	var toDraw = [];
-	if (this.torque[0] < -0.1) {
+	if (relTorque[0] < -0.001) {
 		toDraw.push(this.boosters[BoostType.STARBOARD_AFT_LIFT].prim);
 		toDraw.push(this.boosters[BoostType.PORT_AFT_LIFT].prim);
-		toDraw.push(this.boosters[-BoostType.STARBOARD_BOW_LIFT].prim);
-		toDraw.push(this.boosters[-BoostType.PORT_BOW_LIFT].prim);
-	} else if (this.torque[0] > 0.1) {
+	} else if (relTorque[0] > 0.001) {
 		toDraw.push(this.boosters[-BoostType.STARBOARD_AFT_LIFT].prim);
 		toDraw.push(this.boosters[-BoostType.PORT_AFT_LIFT].prim);
-		toDraw.push(this.boosters[BoostType.STARBOARD_BOW_LIFT].prim);
-		toDraw.push(this.boosters[BoostType.PORT_BOW_LIFT].prim);
-	}
-	if (this.torque[2] < -0.1) {
-		toDraw.push(this.boosters[-BoostType.STARBOARD_AFT_LIFT].prim);
-		toDraw.push(this.boosters[BoostType.PORT_AFT_LIFT].prim);
-		toDraw.push(this.boosters[-BoostType.STARBOARD_BOW_LIFT].prim);
-		toDraw.push(this.boosters[BoostType.PORT_BOW_LIFT].prim);
-	} else if (this.torque[2] > 0.1) {
-		toDraw.push(this.boosters[BoostType.STARBOARD_AFT_LIFT].prim);
-		toDraw.push(this.boosters[-BoostType.PORT_AFT_LIFT].prim);
-		toDraw.push(this.boosters[BoostType.STARBOARD_BOW_LIFT].prim);
-		toDraw.push(this.boosters[-BoostType.PORT_BOW_LIFT].prim);
 	}
 
 
@@ -457,10 +394,8 @@ SpaceShip.prototype.printInfo = function(isManual) {
  function SpaceLibGL() {
  	LibGL.call(this);
 
- 	if (internet) {
-		this.controller = new Leap.Controller({});
-		this.controller.connect();
- 	}
+	// this.controller = new Leap.Controller({});
+	// this.controller.connect();
 
  	this.spaceShip = null;
  	this.manualControls = false;
@@ -620,11 +555,12 @@ SpaceLibGL.prototype.renderCubeMap = function(name) {
  */
 SpaceLibGL.prototype.handleInput = function() {
 
+	// var frame = this.controller.frame();
 	var forceScale = 0.03;
 
-	if (internet && this.controller.streaming()) {
+	// if (this.controller.streaming()) {
+	if (false) {
 	///////////////////////// LEAP STUFF //////////////////////////
-		var frame = this.controller.frame();
 
 		if (!this.manualControls) {
 

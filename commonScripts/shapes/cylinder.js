@@ -1,7 +1,7 @@
 /*
  * Cylinder 'class'
  *
- * Currently not top or bottom plans. Only hollow middle section.
+ * Currently no top or bottom planes. Only hollow middle section.
  */
 
 // constuctor
@@ -10,7 +10,7 @@ function Cylinder (longitudeBands, latitudeBands, radius, halfHeight) {
 
 	this.radius = radius;
 	this.halfHeight = halfHeight;
-};
+}
 
 
 Cylinder.prototype = Object.create(Shape3D.prototype); // See note below
@@ -107,7 +107,7 @@ Cylinder.prototype.createVBO = function(gl, useNormals, useTexCoords) {
 	}
 
 	this.vbo.numItems = data.length / this.vbo.itemSize;
-};
+}
 
 /*
  * ro 	- 	ray origin

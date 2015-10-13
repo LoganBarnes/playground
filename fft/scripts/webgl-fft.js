@@ -497,6 +497,11 @@ FFTLibGL.prototype.setScene = function() {
 FFTLibGL.prototype.resizeCanvas = function() {
 	this.resize(this.TEX_WIDTH * 2, this.TEX_HEIGHT * 2);
 	this.render();
+	if (window.innerWidth < 1080) {
+		this.gl.canvas.style.position = "absolute";
+	} else {
+		this.gl.canvas.style.position = "fixed";
+	}
 }
 
 /*

@@ -28,6 +28,9 @@ variable.theme_url = ".";
 	this.viewModelMatrix = mat4.create();
 
 	this.addParticleBlock = false;
+	this.clearParticles = false;
+
+	this.oldPoint = vec3.create();
 
 	this.paused = false;
  };
@@ -54,19 +57,69 @@ GravityLibGL.prototype.constructor = GravityLibGL;
 */
 
 /*
+ * Returns the point where the mouse intersects the camera plane
+ * passing through the origin.
+ */
+GravityLibGL.prototype.getPoint = function(mousePos) {
+
+	var newPoint = vec3.create();
+
+	var scaleViewInv = mat4.create();
+	mat4.multiply(scaleViewInv, this.getScaleMatrix(), this.getViewMatrix());
+	mat4.invert(scaleViewInv, scaleViewInv);
+
+	var eye = this.getEye();
+
+	// get the mouse ray into the scene
+	var ray = this.getRayBare(eye, scaleViewInv, mousePos);
+
+	// determine the intersection distance
+	var n = vec3.create();
+	vec3.normalize(n, eye);
+	var t = -vec3.dot(n, eye) / vec3.dot(n, ray.d);
+
+	// find the point based on the distance: p = ray.o + ray.d * t
+	vec3.scale(newPoint, ray.d, t);
+	vec3.add(newPoint, newPoint, ray.o);
+
+	return vec3.clone(newPoint);
+}
+
+/*
  * Mouse Events
  */
+
+GravityLibGL.prototype.handleMouseDown = function(mouseEvent) {
+	this.mouseDown = true;
+	var pos = this.getMousePos(mouseEvent);
+
+	this.oldPoint = this.getPoint(pos);
+
+	this.lastMouseX = pos.x;
+	this.lastMouseY = pos.y;
+}
 
 GravityLibGL.prototype.handleMouseWheel = function(mouseEvent) {
 	mouseEvent.preventDefault(); // no page scrolling when using the canvas
 
+	var delta = mouseEvent.wheelDelta;
+	if (!delta) {
+		delta = mouseEvent.deltaY;
+	} else {
+		delta *= 0.5;
+	}
+	var scale = vec3.length(this.getEye());
+	scale = Math.log(scale * 0.1 + 1.0) * 0.1;
+
 	if (this.moveCamera) {
-		this.updateZoomZ(mouseEvent.deltaY * 0.03);
+		this.updateZoomZ(delta);
+		if (this.getZoomZ() > -0.001)
+			this.setZoomZ(-0.001);
 	} else {
 		var trans = vec3.create();
 
 		// look translation
-		vec3.scale(trans, this.getLook(), mouseEvent.deltaY * 0.03);
+		vec3.scale(trans, this.getLook(), delta);
 		mat4.translate(this.getBuffer("indices").trans, this.getBuffer("indices").trans, trans);
 	}
 
@@ -78,26 +131,34 @@ GravityLibGL.prototype.handleMouseMove = function(mouseEvent) {
 	if (!this.mouseDown) {
 		return;
 	}
-
 	var pos = this.getMousePos(mouseEvent);
 
-	// var translation
 	var deltaX = pos.x - this.lastMouseX;
 	var deltaY = pos.y - this.lastMouseY;
 
+	// change camera position
 	if (this.moveCamera) {
-		this.updateAngleX(deltaX * 0.25);
-		this.updateAngleY(deltaY * 0.25);
-	} else {
+		// mouse wheel: zoom
+		if (mouseEvent.button == 1) {
+			var scale = vec3.length(this.getEye());
+			scale = Math.log(scale * 0.1 + 1.0) * -0.5;
+
+			this.updateZoomZ(deltaY * scale);
+			if (this.getZoomZ() > -0.001)
+				this.setZoomZ(-0.001);
+		} else { // other buttons: orbit origin	
+			this.updateAngleX(deltaX * 0.25);
+			this.updateAngleY(deltaY * 0.25);
+		}
+	} else { // move particles
 		var trans = vec3.create();
+		var newPoint = this.getPoint(pos);
 
-		// horizontal translation
-		vec3.scale(trans, this.getRight(), deltaX * 0.03);
+		vec3.subtract(trans, newPoint, this.oldPoint);
+
 		mat4.translate(this.getBuffer("indices").trans, this.getBuffer("indices").trans, trans);
 
-		// verticle translation
-		vec3.scale(trans, this.getUp(), -deltaY * 0.03);
-		mat4.translate(this.getBuffer("indices").trans, this.getBuffer("indices").trans, trans);
+		this.oldPoint = vec3.clone(newPoint);
 	}
 
 	this.lastMouseX = pos.x
@@ -113,12 +174,6 @@ GravityLibGL.prototype.handleMouseMove = function(mouseEvent) {
 GravityLibGL.prototype.handleKeyUp = function(keyEvent) {
 	this.currentlyPressedKeys[keyEvent.keyCode] = false;
 	switch(keyEvent.keyCode) {
-		// CMD key (MAC)
-		case 224: // Firefox
-		case 17:  // Opera
-		case 91:  // Chrome/Safari (left)
-		case 93:  // Chrome/Safari (right)
-			break;
 		case 16: // shift
 			this.moveCamera = false;
 			break;
@@ -149,9 +204,59 @@ GravityLibGL.prototype.handleKeyUp = function(keyEvent) {
 				this.HTMLElements["error"].innerHTML = "<p>PAUSED</p>";
 			}
 			break;
+		case 82: // R
+			this.clearParticles = true;
+			break;
+		case 88: // X
+			this.setAngleX(-90);
+			this.setAngleY(0);
+			this.updateView();
+			break;
+		case 89: // Y
+			this.setAngleX(0);
+			this.setAngleY(90);
+			this.updateView();
+			break;
+		case 90: // Z
+			this.setAngleX(0);
+			this.setAngleY(0);
+			this.updateView();
+			break;
 		default:
 			// console.log(keyEvent.keyCode);
 			break;
+	}
+}
+
+GravityLibGL.prototype.setAddBlockTrue = function() {
+	this.addParticleBlock = true;
+}
+GravityLibGL.prototype.setClearParticlesTrue = function() {
+	this.clearParticles = true;
+}
+
+GravityLibGL.prototype.setUpButtons = function() {
+	var gravLib = this;
+	this.HTMLElements["block_button"].onclick = function() { gravLib.setAddBlockTrue(); };
+	this.HTMLElements["clear_button"].onclick = function() { gravLib.setClearParticlesTrue(); };
+}
+
+GravityLibGL.prototype.logslider = function(slider, outMin, outMax, log) {
+	// position will be between 0 and 100
+	var minp = slider.min;
+	var maxp = slider.max;
+
+	// The result should be between 100 an 10000000
+	var minv = Math.log(outMin);
+	var maxv = Math.log(outMax);
+
+	// calculate adjustment factor
+	var scale = (maxv-minv) / (maxp-minp);
+
+	if (log) {
+		return Math.exp(minv + scale*(slider.value-minp));
+	} else {
+		return (Math.log(value)-minv)/scale + min;
 	}
 }
 
@@ -181,6 +286,10 @@ GravityLibGL.prototype.handleInput = function() {}
  */
 
 GravityLibGL.prototype.setParticleUniforms = function(buf, program, args) {
+	this.gl.uniform1f(this.getUniform(program, "uDensity"), this.HTMLElements["density"].value);
+	this.gl.uniform1i(this.getUniform(program, "uDetectCollisions"), this.HTMLElements["collide"].checked);
+	this.gl.uniform1f(this.getUniform(program, "uGravityConstant"), this.HTMLElements["gravity"].value);
+
 	this.gl.uniform2f(this.getUniform(program, "uViewport"), this.TEXTURE_SIZE, this.TEXTURE_SIZE);
 	this.gl.uniform1f(this.getUniform(program, "uDeltaTime"), Math.min(args[0], 0.1));
 	this.gl.uniform1f(this.getUniform(program, "uOldDeltaTime"), Math.min(this.oldDeltaTime, 0.1));
@@ -194,8 +303,6 @@ GravityLibGL.prototype.setParticleUniforms = function(buf, program, args) {
 	this.gl.uniform1i(this.getUniform(program, "uPrevPositions"), 1);
 
 	this.gl.uniform1i(this.getUniform(program, "uNumParticles"), this.getBuffer("indices").vbo.numItems);
-	this.gl.uniform1i(this.getUniform(program, "uDetectCollisions"), this.HTMLElements["collide"].checked);
-	this.gl.uniform1f(this.getUniform(program, "uGravityConstant"), this.HTMLElements["gravity"].value);
 }
 
 GravityLibGL.prototype.setReduceUniforms = function(buf, program, args) {
@@ -257,11 +364,11 @@ GravityLibGL.prototype.updateHTML = function() {
 	this.totalParticles = this.pixData[3];
 
 	var str = "<p>Total Particles: " +
-				this.totalParticles + "<br>" +
+				this.totalParticles + "<br>";// +
 				// this.pixData[0] + "<br>" +
 				// this.pixData[1] + "<br>" +
-				// this.pixData[2] + "<br>";
-				"</p>";
+				// this.pixData[2] + "<br>"
+				// "</p>";
 
 	// read biggest particle position
 	this.bindFramebuffer("solverBuffer", "new");
@@ -273,6 +380,7 @@ GravityLibGL.prototype.updateHTML = function() {
 	// 			 this.pixData[2].toFixed(2) + ", " +
 	// 			 mass.toFixed(2) + ")" +
 	// 			"</p>";
+	str += "Mass of largest particle: " + mass + "</p>";
 
 	this.HTMLElements["info"].innerHTML = str;
 
@@ -312,7 +420,7 @@ GravityLibGL.prototype.tick = function() {
 	}
 
 	if (this.addParticleBlock) {
-		this.createParticleBlock(5);
+		this.createParticleBlock();
 		this.addParticleBlock = false;
 	}
 
@@ -321,7 +429,7 @@ GravityLibGL.prototype.tick = function() {
 	var deltaTime = (timeNow - this.lastTime) / 1000.0; // seconds
 	this.lastTime = timeNow;
 
-	this.handleInput();
+	// this.handleInput();
 
 	deltaTime *= this.HTMLElements["timeScale"].value;
 
@@ -332,6 +440,11 @@ GravityLibGL.prototype.tick = function() {
 	}
 
 	this.render();
+
+	if (this.clearParticles) {
+		this.clear();
+		this.clearParticles = false;
+	}
 }
 
 /*
@@ -359,6 +472,7 @@ GravityLibGL.prototype.setPointUniforms = function(smb, program, args) {
 	this.gl.uniformMatrix4fv(this.getUniform(program, "uPMatrix"), false, this.getProjMatrix());
 	this.gl.uniformMatrix4fv(this.getUniform(program, "uMVMatrix"), false, this.viewModelMatrix);
 
+	this.gl.uniform1f(this.getUniform(program, "uDensity"), this.HTMLElements["density"].value);
 	this.gl.uniform1f(this.getUniform(program, "uTextureSize"), this.TEXTURE_SIZE);
 	this.gl.uniform1i(this.getUniform(program, "uScreenHeight"), window.innerHeight);
 }
@@ -430,7 +544,8 @@ GravityLibGL.prototype.initShaders = function() {
 					// attributes
 					["aPosition"],
 					// uniforms
-					["uPMatrix", "uMVMatrix", "uTextureSize", "uScreenHeight", "uTexture"]);
+					["uPMatrix", "uMVMatrix", "uTextureSize", "uScreenHeight",
+					 "uTexture", "uDensity"]);
 
 	// solver shaders
 	this.addProgram("solver", variable.theme_url + "/res/shaders/solver.vert", variable.theme_url + "/res/shaders/solver.frag",
@@ -439,7 +554,7 @@ GravityLibGL.prototype.initShaders = function() {
 					// uniforms
 					["uCurrPositions", "uPrevPositions", "uNumParticles",
 					"uViewport", "uDeltaTime", "uOldDeltaTime", "uDetectCollisions",
-					"uGravityConstant"]);
+					"uGravityConstant", "uDensity"]);
 
 	this.addProgram("reduce", variable.theme_url + "/res/shaders/reduce.vert", variable.theme_url + "/res/shaders/reduce.frag",
 					// attributes
@@ -478,14 +593,42 @@ GravityLibGL.prototype.initTextures = function() {
 	this.addFramebuffer("reduceBuffer2", 1, 1);
 }
 
-/*
- *
- */
-GravityLibGL.prototype.createParticleBlock = function(velocityMag) {
+GravityLibGL.prototype.clear = function() {
+	var pos = new Float32Array(this.MAX_PARTICLES * 4);
 
+	for (var i = 0; i < this.TEXTURE_SIZE; i++) {
+		for (var j = 0; j < this.TEXTURE_SIZE; j++) {
+			var index = (i * this.TEXTURE_SIZE + j) * 4;
+			pos[index  ] = 0.0;
+			pos[index+1] = 0.0;
+			pos[index+2] = 0.0;
+			pos[index+3] = 0.0;
+		}
+	}
+
+	this.updateTextureArray("new", this.TEXTURE_SIZE, this.TEXTURE_SIZE, this.gl.FLOAT, pos);
+	this.updateTextureArray("curr", this.TEXTURE_SIZE, this.TEXTURE_SIZE, this.gl.FLOAT, pos);
+	this.updateTextureArray("prev", this.TEXTURE_SIZE, this.TEXTURE_SIZE, this.gl.FLOAT, pos);
+
+	this.getBuffer("indices").vbo.numItems = 0;
+	this.totalParticles = 0;
+
+	mat4.identity(this.viewModelMatrix);
+}
+
+/*
+ * Creates a new block of particles at the origin.
+ */
+GravityLibGL.prototype.createParticleBlock = function() {
+	this.HTMLElements["error"].innerHTML = "";
+
+	var origin = [0, 0, 0, 1];
+	vec4.transformMat4(origin, origin, this.getBuffer("indices").trans);
 
 	this.gridSize = this.HTMLElements["block"].value;
 	this.gridSize2 = this.gridSize * this.gridSize;
+	var mass = this.HTMLElements["mass"].value;
+	var sizeScale = (Math.log(mass) + 1) * 4.0;
 
 	this.bindFramebuffer("solverBuffer", "new");
 	this.gl.readPixels(0, 0, this.TEXTURE_SIZE, this.TEXTURE_SIZE, this.gl.RGBA, this.gl.FLOAT, this.pixDataFull);
@@ -507,10 +650,10 @@ GravityLibGL.prototype.createParticleBlock = function(velocityMag) {
 					break;
 				}
 
-				this.pixDataFull[i*4  ] = (c - (this.gridSize - 1) / 2.0) * 4.0;
-				this.pixDataFull[i*4+1] = (r - (this.gridSize - 1) / 2.0) * 4.0;
-				this.pixDataFull[i*4+2] = (b - (this.gridSize - 1) / 2.0) * 4.0;
-				this.pixDataFull[i*4+3] = 1.0;
+				this.pixDataFull[i*4  ] = (c - (this.gridSize - 1) * 0.5) * sizeScale - origin[0];
+				this.pixDataFull[i*4+1] = (r - (this.gridSize - 1) * 0.5) * sizeScale - origin[1];
+				this.pixDataFull[i*4+2] = (b - (this.gridSize - 1) * 0.5) * sizeScale - origin[2];
+				this.pixDataFull[i*4+3] = mass;
 				
 				this.pixDataPos[i] = 0;
 				++i;
@@ -533,10 +676,15 @@ GravityLibGL.prototype.createParticleBlock = function(velocityMag) {
 	this.gl.readPixels(0, 0, this.TEXTURE_SIZE, this.TEXTURE_SIZE, this.gl.RGBA, this.gl.FLOAT, this.pixDataFull);
 
 	var tangent = vec3.create();
+	var velocityMag = this.HTMLElements["velocity"].value;
 	var randomCoeff = this.HTMLElements["random"].value;
+
+	velocityMag *= sizeScale * 0.2;
+	randomCoeff *= 2.0;
 
 	velocityMag *= this.oldDeltaTime;
 	randomCoeff *= this.oldDeltaTime;
+
 
 	// 'previous' this.pixDataFullitions for velocity calculations
 	i = 0;
@@ -553,10 +701,10 @@ GravityLibGL.prototype.createParticleBlock = function(velocityMag) {
 				}
 
 				// original positions
-				this.pixDataFull[i*4  ] = (c - (this.gridSize - 1) / 2.0) * 4.0;
-				this.pixDataFull[i*4+1] = (r - (this.gridSize - 1) / 2.0) * 4.0;
-				this.pixDataFull[i*4+2] = (b - (this.gridSize - 1) / 2.0) * 4.0;
-				this.pixDataFull[i*4+3] = 1.0;
+				this.pixDataFull[i*4  ] = (c - (this.gridSize - 1) * 0.5) * sizeScale;
+				this.pixDataFull[i*4+1] = (r - (this.gridSize - 1) * 0.5) * sizeScale;
+				this.pixDataFull[i*4+2] = (b - (this.gridSize - 1) * 0.5) * sizeScale;
+				this.pixDataFull[i*4+3] = mass;
 
 				// tangential velocity corrections
 				tangent[0] = -this.pixDataFull[i*4+2]; // -z
@@ -570,6 +718,10 @@ GravityLibGL.prototype.createParticleBlock = function(velocityMag) {
 											(Math.random() - 0.5) * randomCoeff;
 				this.pixDataFull[i*4+2] += 	tangent[2] * velocityMag +
 											(Math.random() - 0.5) * randomCoeff;
+
+				this.pixDataFull[i*4  ] -= origin[0];
+				this.pixDataFull[i*4+1] -= origin[1];
+				this.pixDataFull[i*4+2] -= origin[2];
 
 				++i;
 			}
@@ -654,6 +806,7 @@ function main() {
 	gravityLibGL.addLinkedInput("timeScale", "timeScaleText");
 	gravityLibGL.addLinkedInput("speed", "speedText");
 	gravityLibGL.addLinkedInput("gravity", "gravityText");
+	gravityLibGL.addLinkedInput("density", "densityText");
 	gravityLibGL.addHTMLElement("collide");
 	gravityLibGL.addHTMLElement("info");
 	gravityLibGL.addHTMLElement("error");
@@ -661,8 +814,15 @@ function main() {
 	gravityLibGL.addHTMLElement("axes");
 	gravityLibGL.addLinkedInput("block", "blockText");
 	gravityLibGL.addLinkedInput("random", "randomText");
+	gravityLibGL.addLinkedInput("mass", "massText");
+	gravityLibGL.addLinkedInput("velocity", "velocityText");
+	
+	gravityLibGL.addHTMLElement("block_button");
+	gravityLibGL.addHTMLElement("clear_button");
+	gravityLibGL.setUpButtons();
 
 	gravityLibGL.setTogglePanels([["settingsHeader", "settingsToggle"], ["controlsHeader", "controlsToggle"]]);
+
 
 	gravityLibGL.start();
 }

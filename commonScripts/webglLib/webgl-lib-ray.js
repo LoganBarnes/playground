@@ -43,6 +43,7 @@ var Camera = function(fovy, aspect, near, far) {
 	this.scaleMatrix = mat4.create();
 	this.projMatrix = mat4.create();
 	this.projViewMatrix = mat4.create();
+	this.scaleViewInvMatrix = mat4.create();
 
 	// camera vectors
 	this.eye = vec4.create();
@@ -159,6 +160,10 @@ OrbitCam.prototype.updateView = function() {
 
 	// update projView matrix
 	mat4.multiply(this.projViewMatrix, this.projMatrix, this.viewMatrix);
+
+	// update scale view matrix
+	mat4.multiply(this.scaleViewInvMatrix, this.scaleMatrix, this.viewMatrix);
+	mat4.invert(this.scaleViewInvMatrix, this.scaleViewInvMatrix);
 }
 
 /*
@@ -238,16 +243,14 @@ var LibGL = function() {
 	this.gl;
 	this.exts;
 
-	// not used here but often useful
+	// div encapsulating the canvas
 	this.canvas_div;
 
 	// shader program; primitive shape; cubemap/skybox setup
 	this.Program = makeStruct("program attributes uniforms initialized");
 	this.Cubemap = makeStruct("program texture");
-	this.Primitive = makeStruct("type trans invT color settings texture"); // settings: shine, refractiveIndex, useTex, isLight
+	this.Primitive = makeStruct("type trans inv color settings texture"); // settings: shine, refractive index, selected, outer radius (torus/hollowCyl)
 	this.Light = makeStruct("type posDir power radius radiance trans");
-	this.Model = makeStruct("vbo trans invT color settings texture");
-	this.Buffer = makeStruct("vbo trans invT color settings texture drawMode");
 
 	// objects used as hashmaps
 	this.programs = {};
@@ -260,18 +263,15 @@ var LibGL = function() {
 	// framebuffers for rendering to textures
 	this.framebuffers = {};
 
+	// the fullscreen quad used for drawing
+	this.fullScreenQuadVBO = null;
+
 	// list of shapes and lights in the scene
 	this.primitives = [];
 	this.lights = [];
 	this.MAX_LIGHTS = 10; // corresponds to shader value
 	this.lightScale = 0.0; // total brightness of the scene
 	this.ambientRadiance = vec3.create(); // ambient radiance light in the scene
-
-	// a single instance of each shape type
-	this.quad = null;
-	this.sphere = null;
-	this.cylinder = null;
-	this.cubemapVBO = null;
 
 	// orbit or action cam (action not implemented yet)
 	this.camera = null;
@@ -291,6 +291,13 @@ var LibGL = function() {
 
 	// time updates (not used here but commonly needed)
 	this.lastTime = 0; // in milliseconds
+
+	// ray specific variables
+	this.rayShape = null; // cpu raycasting
+	this.antialiasing = false;
+	this.brightness = 1.0;
+	this.useShadows = false;
+	this.reflectionIterations = 0;
 }
 
 /**
@@ -332,9 +339,6 @@ LibGL.prototype.setUpGL = function(canvas, extensions) {
 
 	// Specify that the front face is represented by vertices in counterclockwise order (this is the default).
 	this.gl.frontFace(this.gl.CCW);
-
-	// create the primitive instances
-	this.initShapes();
 }
 
 
@@ -449,88 +453,38 @@ var LightType = Object.freeze({
 /*
  * Loads all primitive shape classes
  */
-LibGL.prototype.initShapes = function() {
-	this.quad = new Quad(50, 50, 1.0);
-	this.sphere = new Sphere(50, 50, 1.0);
-	this.cylinder = new Cylinder(50, 50, 1.0, 1.0);
-
-	this.quad.createVBO(this.gl, true, true);
-	this.sphere.createVBO(this.gl, true, true);
-	this.cylinder.createVBO(this.gl, true, true);
-}
-
-/*
- * Creates a new Primitive object
- */
-LibGL.prototype.createPrimitive = function(type, trans, color, settings, texture) {
-	var invT = mat4.create();
-	mat4.invert(invT, trans);
-	mat4.transpose(invT, invT);
-	return new this.Primitive(type, mat4.clone(trans), invT, color, settings, texture);
+LibGL.prototype.initRayShape = function() {
+	this.rayShape = new RayShape();
 }
 
 /*
  * Adds a primitive shape to the scene
  */
 LibGL.prototype.addPrimitive = function(type, trans, color, settings, texture) {
-	this.primitives.push(this.createPrimitive(type, trans, color, settings, texture));
+	var inv = mat4.create();
+	mat4.invert(inv, trans);
+	this.primitives.push(new this.Primitive(type, mat4.clone(trans), inv, color, settings, texture));
 	return this.primitives[this.primitives.length - 1];
 }
 
 /*
  * Renders all the primitives that have been added to the scene.
  */
-LibGL.prototype.renderPrimitives = function(program, callback, args, primitives) {
-	primitives = typeof primitives !== "undefined" ? primitives : this.primitives;
+LibGL.prototype.setPrimitives = function(program) {
 	
 	// iterate through the primitives
-	var len = primitives.length;
+	var len = this.primitives.length;
 	var prim;
 	for (var i = 0; i < len; ++i) {
-		this.renderPrimitive(i, program, callback, args, primitives);
-	}
-}
-
-/*
- * Renders a single primitive
- */
-LibGL.prototype.renderPrimitive = function(index, program, callback, args, primitives) {
-	var prim = primitives[index];
-
-	// use the callback function to set uniforms for this shape
-	callback(prim, program, args);
-
-	// if the texture is used set set the uniform
-	if (prim.texture.length > 0) {
-		this.gl.activeTexture(this.gl.TEXTURE0);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.getTexture(prim.texture));
-		this.gl.uniform1i(this.getUniform(program, "uTexture"), 0);
+		prim = this.primitives[i];
+		this.gl.uniform1i(this.gl.getUniformLocation(this.getProgram(program), "shapes[" + i + "].type"), prim.type);
+		this.gl.uniformMatrix4fv(this.gl.getUniformLocation(this.getProgram(program), "shapes[" + i + "].trans"), false, prim.trans);
+		this.gl.uniformMatrix4fv(this.gl.getUniformLocation(this.getProgram(program), "shapes[" + i + "].inv"), false, prim.inv);
+		this.gl.uniform4fv(this.gl.getUniformLocation(this.getProgram(program), "shapes[" + i + "].color"), prim.color);
+		this.gl.uniform4fv(this.gl.getUniformLocation(this.getProgram(program), "shapes[" + i + "].settings"), prim.settings);
 	}
 
-	// render the shape
-	switch(prim.type) {
-		
-		case ShapeType.CYLINDER:
-			this.cylinder.bindBuffer(this.gl, this.getAttribute(program, "aPosition"),
-										 	  this.getAttribute(program, "aNormal"),
-										 	  this.getAttribute(program, "aTexCoord"));
-			this.cylinder.render(this.gl);
-			break;
-		case ShapeType.SPHERE:
-			this.sphere.bindBuffer(this.gl, this.getAttribute(program, "aPosition"),
-											this.getAttribute(program, "aNormal"),
-											this.getAttribute(program, "aTexCoord"));
-			this.sphere.render(this.gl);
-			break;
-		case ShapeType.QUAD:
-			this.quad.bindBuffer(this.gl,   this.getAttribute(program, "aPosition"),
-											this.getAttribute(program, "aNormal"),
-											this.getAttribute(program, "aTexCoord"));
-			this.quad.render(this.gl);
-			break;
-		default:
-			break;
-	}
+	this.gl.uniform1i(this.getUniform(program, "uNumShapes"), len);
 }
 
 /*
@@ -559,7 +513,7 @@ LibGL.prototype.addLight = function(type, posDir, power, radius) {
 /*
  * Renders all the point lights and sets the uniforms for each light.
  */
-LibGL.prototype.setLights = function(program, callback, args, render) {
+LibGL.prototype.setLights = function(program) {
 	
 	// iterate through the lights
 	var len = this.lights.length;
@@ -567,266 +521,12 @@ LibGL.prototype.setLights = function(program, callback, args, render) {
 	for (var i = 0; i < len; ++i) {
 
 		light = this.lights[i];
-
-		// use the callback function to set uniforms for this shape
-		callback(light, program, args, i);
-
-		// if the light is a point light render it
-		if (render && light.type == LightType.POINT) {
-			this.sphere.bindBuffer(this.gl, this.getAttribute(program, "aPosition"),
-											this.getAttribute(program, "aNormal"),
-											this.getAttribute(program, "aTexCoord"));
-			this.sphere.render(this.gl);
-		}
+		this.gl.uniform1i(this.gl.getUniformLocation(this.getProgram(program), "lights[" + i + "].type"), light.type);
+		this.gl.uniform3fv(this.gl.getUniformLocation(this.getProgram(program), "lights[" + i + "].posDir"), light.posDir);
+		this.gl.uniform3fv(this.gl.getUniformLocation(this.getProgram(program), "lights[" + i + "].radiance"), light.radiance);
 	}
 }
 
-
-/*
-          .         .                                                                                          
-         ,8.       ,8.           ,o888888o.     8 888888888o.      8 8888888888   8 8888           d888888o.   
-        ,888.     ,888.       . 8888     `88.   8 8888    `^888.   8 8888         8 8888         .`8888:' `88. 
-       .`8888.   .`8888.     ,8 8888       `8b  8 8888        `88. 8 8888         8 8888         8.`8888.   Y8 
-      ,8.`8888. ,8.`8888.    88 8888        `8b 8 8888         `88 8 8888         8 8888         `8.`8888.     
-     ,8'8.`8888,8^8.`8888.   88 8888         88 8 8888          88 8 888888888888 8 8888          `8.`8888.    
-    ,8' `8.`8888' `8.`8888.  88 8888         88 8 8888          88 8 8888         8 8888           `8.`8888.   
-   ,8'   `8.`88'   `8.`8888. 88 8888        ,8P 8 8888         ,88 8 8888         8 8888            `8.`8888.  
-  ,8'     `8.`'     `8.`8888.`8 8888       ,8P  8 8888        ,88' 8 8888         8 8888        8b   `8.`8888. 
- ,8'       `8        `8.`8888.` 8888     ,88'   8 8888    ,o88P'   8 8888         8 8888        `8b.  ;8.`8888 
-,8'         `         `8.`8888.  `8888888P'     8 888888888P'      8 888888888888 8 888888888888 `Y8888P ,88P' 
-*/
-
-LibGL.prototype.handleLoadedModel = function(data, name, model) {
-
-	var faces = data.geometries[0].data.faces;
-	var vertices = data.geometries[0].data.vertices;
-	var uvs = data.geometries[0].data.uvs[0];
-	var normals = data.geometries[0].data.normals;
-
-	var data = [];
-
-	var index = [0, 0, 0];
-	var len = faces.length;
-	var i = 0; var k;
-	while (i < len) {
-
-		if (faces[i] == 56) {
-			k = 1;
-		} else if (faces[i] == 40) {
-			k = 0;
-		}
-		
-		// vertex 1
-		index = [faces[i+1] * 3, faces[i+4] * 2, faces[i+k+7] * 3];
-		data.push(vertices[index[0]]); data.push(vertices[index[0]+1]); data.push(vertices[index[0]+2]);
-		data.push(normals[index[2]]); data.push(normals[index[2]+1]); data.push(normals[index[2]+2]);
-		data.push(uvs[index[1]]); data.push(uvs[index[1]+1]);
-		
-		// vertex 2
-		index = [faces[i+2] * 3, faces[i+5] * 2, faces[i+k+8] * 3];
-		data.push(vertices[index[0]]); data.push(vertices[index[0]+1]); data.push(vertices[index[0]+2]);
-		data.push(normals[index[2]]); data.push(normals[index[2]+1]); data.push(normals[index[2]+2]);
-		data.push(uvs[index[1]]); data.push(uvs[index[1]+1]);
-		
-		// vertex 3
-		index = [faces[i+3] * 3, faces[i+6] * 2, faces[i+k+9] * 3];
-		data.push(vertices[index[0]]); data.push(vertices[index[0]+1]); data.push(vertices[index[0]+2]);
-		data.push(normals[index[2]]); data.push(normals[index[2]+1]); data.push(normals[index[2]+2]);
-		data.push(uvs[index[1]]); data.push(uvs[index[1]+1]);
-
-		if (k == 1) {
-			i += 11
-		} else if (k == 0) {
-			i += 10;
-		}
-	}
-
-	model.vbo = this.gl.createBuffer();
-	this.gl.bindBuffer(this.gl.ARRAY_BUFFER, model.vbo);
-
-	this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(data), this.gl.STATIC_DRAW);
-	model.vbo.itemSize = 8;
-	model.vbo.numItems = data.length / model.vbo.itemSize;
-
-	this.models[name] = model;
-}
-
-/*
- * Loads a single JSON model.
- */
-LibGL.prototype.loadModelJSON = function(url, name, model) {
-
-	var glLib = this;
-	loadFile(url, 0, function (text, urlIndex) {
-		glLib.handleLoadedModel(JSON.parse(text), name, model);
-	}, function (url) { // loading failure callback
-		alert('Failed to download "' + url + '"');
-	}); 
-}
-
-/*
- * Adds a model mesh to the scene.
- */
-LibGL.prototype.addModelJSON = function(name, url, trans, color, settings, texture) {
-	var invT = mat4.create();
-	mat4.invert(invT, trans);
-	mat4.transpose(invT, invT);
-
-	var model = new this.Model(null, mat4.clone(trans), invT, color, settings, texture);
-	this.loadModelJSON(url, name, model);
-}
-
-/*
- * Renders all the models that have been added to the scene.
- */
-LibGL.prototype.renderModels = function(program, callback, args) {
-	
-	var names = Object.keys(this.models);
-
-	// iterate through the models
-	var len = names.length;
-	var model;
-	for (var i = 0; i < len; ++i) {
-		this.renderModel(names[i], program, callback, args);
-	}
-}
-
-/*
- * Renders a single model
- */
-LibGL.prototype.renderModel = function(name, program, callback, args) {
-	var model = this.models[name];
-
-	// if the vbo isn't loaded and created skip this model
-	if (!model.vbo) {
-		return;
-	}
-
-	// use the callback function to set uniforms for this shape
-	callback(model, program, args);
-
-	// if the texture is used set set the uniform
-	if (model.texture.length > 0) {
-		this.gl.activeTexture(this.gl.TEXTURE0);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.getTexture(model.texture));
-		this.gl.uniform1i(this.getUniform(program, "uTexture"), 0);
-	}
-
-	// render the model
-	this.bindBuffer(model.vbo,  this.getAttribute(program, "aPosition"),
-								this.getAttribute(program, "aNormal"),
-								this.getAttribute(program, "aTexCoord"));		
-	this.gl.drawArrays(this.gl.TRIANGLES, 0, model.vbo.numItems);
-}
-
-
-/*
-                                                                                                         
-8 888888888o   8 8888      88 8 8888888888   8 8888888888   8 8888888888   8 888888888o.     d888888o.   
-8 8888    `88. 8 8888      88 8 8888         8 8888         8 8888         8 8888    `88.  .`8888:' `88. 
-8 8888     `88 8 8888      88 8 8888         8 8888         8 8888         8 8888     `88  8.`8888.   Y8 
-8 8888     ,88 8 8888      88 8 8888         8 8888         8 8888         8 8888     ,88  `8.`8888.     
-8 8888.   ,88' 8 8888      88 8 888888888888 8 888888888888 8 888888888888 8 8888.   ,88'   `8.`8888.    
-8 8888888888   8 8888      88 8 8888         8 8888         8 8888         8 888888888P'     `8.`8888.   
-8 8888    `88. 8 8888      88 8 8888         8 8888         8 8888         8 8888`8b          `8.`8888.  
-8 8888      88 ` 8888     ,8P 8 8888         8 8888         8 8888         8 8888 `8b.    8b   `8.`8888. 
-8 8888    ,88'   8888   ,d8P  8 8888         8 8888         8 8888         8 8888   `8b.  `8b.  ;8.`8888 
-8 888888888P      `Y88888P'   8 8888         8 8888         8 888888888888 8 8888     `88. `Y8888P ,88P' 
-*/
-
-/*
- * Get buffer with specific name
- */
-LibGL.prototype.getBuffer = function(name) {
-	return this.buffers[name];
-}
-
-/*
- * Adds a new buffer to the scene
- */
-LibGL.prototype.addBuffer = function(name, data, itemSize, trans, color, settings, texture, drawMode) {
-
-	var invT = mat4.create();
-	mat4.invert(invT, trans);
-	mat4.transpose(invT, invT);
-	var buffer = new this.Buffer(null, mat4.clone(trans), invT, color, settings, texture, drawMode);
-
-	buffer.vbo = this.gl.createBuffer();
-	this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer.vbo);
-
-	this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(data), this.gl.STATIC_DRAW);
-	buffer.vbo.itemSize = itemSize;
-	buffer.vbo.numItems = data.length / buffer.vbo.itemSize;
-
-	this.buffers[name] = buffer;
-}
-
-/*
- * Binds the given buffer
- */
-LibGL.prototype.bindBuffer = function(buf, positionAttribute, normalAttribute, texCoordAttribute) {
-	var step = Float32Array.BYTES_PER_ELEMENT;
-	var stride = step * buf.itemSize;
-
-	this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buf);
-	if (buf.itemSize == 1) { // index buffer
-		this.gl.vertexAttribPointer(positionAttribute, 1, this.gl.FLOAT, false, stride, 0);
-	} else if (buf.itemSize == 2) { // screen buffer
-		this.gl.vertexAttribPointer(positionAttribute, 2, this.gl.FLOAT, false, stride, 0);
-	} else { // vertex buffer
-		this.gl.vertexAttribPointer(positionAttribute, 3, this.gl.FLOAT, false, stride, 0);
-	}
-
-	if (buf.itemSize > 5) {// 6 or 8 
-		this.gl.vertexAttribPointer(normalAttribute, 3, this.gl.FLOAT, false, stride, step * 3);
-	} if (buf.itemSize == 5) {
-		this.gl.vertexAttribPointer(texCoordAttribute, 2, this.gl.FLOAT, false, stride, step * 3);
-	} else if (buf.itemSize == 8) {
-		this.gl.vertexAttribPointer(texCoordAttribute, 2, this.gl.FLOAT, false, stride, step * 6);
-	}
-}
-
-/*
- * Renders all the buffers that have been added to the scene
- */
-LibGL.prototype.renderBuffers = function(program, callback, args) {
-	
-	var names = Object.keys(this.buffers);
-
-	// iterate through the buffers
-	var len = names.length;
-	for (var i = 0; i < len; ++i) {
-		this.renderBuffer(names[i], program, callback, args);
-	}
-}
-
-/*
- * Renders a single buffer
- */
-LibGL.prototype.renderBuffer = function(name, program, callback, args) {
-	var buffer = this.buffers[name];
-
-	// if the vbo isn't loaded and created skip this buffer
-	if (!buffer.vbo) {
-		return;
-	}
-
-	// use the callback function to set uniforms for this shape
-	callback(buffer, program, args);
-
-	// if the texture is used set set the uniform
-	if (buffer.texture.length > 0) {
-		this.gl.activeTexture(this.gl.TEXTURE0);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.getTexture(buffer.texture));
-		this.gl.uniform1i(this.getUniform(program, "uTexture"), 0);
-	}
-
-	// render the buffer
-	this.bindBuffer(buffer.vbo, this.getAttribute(program, "aPosition"),
-								this.getAttribute(program, "aNormal"),
-								this.getAttribute(program, "aTexCoord"));		
-	this.gl.drawArrays(buffer.drawMode, 0, buffer.vbo.numItems);
-}
 
 
 /*
@@ -935,7 +635,7 @@ LibGL.prototype.setUpTexture = function(initialArray, w, h, type, url, flipy) {
 			glLib.handleSingleTexture(glLib.gl, texture, flipy);
 		}
 
-		texture.image.crossOrigin = "anonymous";
+		texture.image.crossOrigin = 'anonymous';
 		texture.image.src = url;
 	}
 
@@ -969,7 +669,7 @@ LibGL.prototype.setTextureParams = function(name, magFilter, minFilter, wrapS, w
  */
 
 LibGL.prototype.addTexture = function(name, initialArray, w, h, type, url, flipy) {
-	flipy = typeof flipy !== "undefined" ? flipy : false;
+	flipy = typeof flipy !== 'undefined' ? flipy : false;
 	this.textures[name] = this.setUpTexture(initialArray, w, h, type, url, flipy);
 }
 LibGL.prototype.getTexture = function(name) {
@@ -1253,11 +953,21 @@ LibGL.prototype.handleMouseWheel = function(mouseEvent) {
 
 LibGL.prototype.handleMouseMove = function(mouseEvent) {
 	
+	var pos = this.getMousePos(mouseEvent);
+
 	if (!this.mouseDown) {
+		var indexBest = this.castRay(pos);
+
+		var num = this.primitives.length;
+		for (var i = 0; i < num; ++i) {
+			this.primitives[i].settings[2] = 0.0;
+		}
+		if (indexBest[0] >= 0) {
+			this.primitives[indexBest[0]].settings[2] = 1.0;
+		}
+
 		return;
 	}
-
-	var pos = this.getMousePos(mouseEvent);
 
 	// var translation
 	var deltaX = pos.x - this.lastMouseX;
@@ -1404,6 +1114,9 @@ LibGL.prototype.getProjViewMatrix = function() {
 LibGL.prototype.getScaleMatrix = function() {
 	return this.camera.scaleMatrix;
 }
+LibGL.prototype.getScaleViewInvMatrix = function() {
+	return this.camera.scaleViewInvMatrix;
+}
 LibGL.prototype.getEye = function() {
 	return this.camera.eye;
 }
@@ -1483,41 +1196,35 @@ LibGL.prototype.resizeCanvas = function() {
 */
 
 /*
+ *
+ */
+LibGL.prototype.initFullscreenBuffer = function() {
+	this.fullScreenQuadVBO = this.gl.createBuffer();
+	this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.fullScreenQuadVBO);
+
+	var data = [ 1.0,  1.0,
+				-1.0,  1.0,
+				 1.0, -1.0,
+				-1.0, -1.0];
+	
+	this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(data), this.gl.STATIC_DRAW);
+	this.fullScreenQuadVBO.itemSize = 2;
+	this.fullScreenQuadVBO.numItems = data.length / this.fullScreenQuadVBO.itemSize;
+}
+
+/*
  * Functions to set uniform variables.
  */
 
-LibGL.prototype.setCameraAndLightUniforms = function(program) {
-	this.gl.uniformMatrix4fv(this.getUniform(program, "uPVMatrix"), false, this.camera.projViewMatrix);
-	this.gl.uniform1f(this.getUniform(program, "uLightScale"), this.lightScale);
-	this.gl.uniform3fv(this.getUniform(program, "uAmbientRadiance"), this.ambientRadiance);
+LibGL.prototype.setCameraAndGlobalUniforms = function(program) {
+	this.gl.uniformMatrix4fv(this.getUniform(program, "uScaleViewInv"), false, this.getScaleViewInvMatrix());
+	this.gl.uniform4fv(this.getUniform(program, "uEyePos"), this.getEye());
+	this.gl.uniform2f(this.getUniform(program, "uViewport"), this.gl.viewportWidth, this.gl.viewportHeight);
 
-	var numLights = this.lights.length;
-	if (numLights < this.MAX_LIGHTS) {
-		this.gl.uniform1i(this.gl.getUniformLocation(this.getProgram(program), "uLights[" + numLights + "].type"), -1);
-	}
-}
-
-LibGL.prototype.setLightUniforms = function(light, program, args, index) {
-	var prog = this.getProgram(program);
-	this.gl.uniform1i(this.gl.getUniformLocation(prog, "uLights[" + index + "].type"), light.type);
-	this.gl.uniform3fv(this.gl.getUniformLocation(prog, "uLights[" + index + "].posDir"), light.posDir);
-	this.gl.uniform3fv(this.gl.getUniformLocation(prog, "uLights[" + index + "].radiance"), light.radiance);
-
-	this.gl.uniform4f(this.getUniform(program, "uShapeSettings"), 1, 1, 1, 1);
-
-	var color = vec3.create();
-	vec3.scale(color, light.radiance, 1.0 / this.lightScale);
-	this.gl.uniform3fv(this.getUniform(program, "uColor"), color);
-
-	this.gl.uniformMatrix4fv(this.getUniform(program, "uMMatrix"), false, light.trans);
-}
-
-LibGL.prototype.setShapeUniforms = function(smb, program, args) {
-	this.gl.uniform4fv(this.getUniform(program, "uShapeSettings"), smb.settings);
-	this.gl.uniform3f(this.getUniform(program, "uColor"), smb.color[0], smb.color[1], smb.color[2]);
-
-	this.gl.uniformMatrix4fv(this.getUniform(program, "uMMatrix"), false, smb.trans);
-	this.gl.uniformMatrix4fv(this.getUniform(program, "uMMatrixIT"), false, smb.invT);
+	// global settings:
+	this.gl.uniform1i(this.getUniform(program, "uAntialiasing"), this.antialiasing);
+	this.gl.uniform1i(this.getUniform(program, "uUseShadows"), this.useShadows);
+	this.gl.uniform1f(this.getUniform(program, "uBrightness"), this.brightness);
 }
 
 /*
@@ -1525,11 +1232,15 @@ LibGL.prototype.setShapeUniforms = function(smb, program, args) {
  */
 LibGL.prototype.renderScene = function(program) {
 	this.useProgram(program);
-	this.setCameraAndLightUniforms(program);
-	this.setLights(program, this.setLightUniforms.bind(this), [], true);
-	this.renderPrimitives(program, this.setShapeUniforms.bind(this), []);
-	this.renderModels(program, this.setShapeUniforms.bind(this), []);
-	this.renderBuffers(program, this.setShapeUniforms.bind(this), []);
+	this.setCameraAndGlobalUniforms(program);
+	this.setLights(program);
+	this.setPrimitives(program);
+
+	// bind and render fullscreen quad
+	this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.fullScreenQuadVBO);
+	this.gl.vertexAttribPointer(this.getAttribute(program, "aPosition"), 2, this.gl.FLOAT, false, Float32Array.BYTES_PER_ELEMENT * this.fullScreenQuadVBO, 0);
+
+	this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.fullScreenQuadVBO.numItems);
 }
 
 /*
@@ -1666,12 +1377,14 @@ LibGL.prototype.init = function(canvas, canvas_div, extensions) {
 	this.canvas_div = canvas_div;
 
 	// set up the WebGL context; load shaders and textures
-	this.setUpGL(canvas, extensions)
+	this.setUpGL(canvas, extensions);
+	this.initRayShape();
+	this.initFullscreenBuffer();
 	this.initShaders();
 	this.initTextures();
 
 	// add a camera and build the scene
-	this.addOrbitCam(-15.0, 0.0, 15.0, [0, 0, 0], 45.0, 1.0, 0.1, 5000.0);
+	this.addOrbitCam(-15.0, 0.0, 0.0, [0, 0, 0], 45.0, 1.0, 0.1, 100.0);
 	this.setScene();
 	
 	// specify default clear color
@@ -1765,6 +1478,19 @@ LibGL.prototype.getRay = function(orig, scaleViewInv, mousePos) {
 		sign: sgn
 	}
 }
+
+/*
+ * Casts a ray into the scene. Returns the index and distance
+ * of the closest intersecting shape.
+ */
+LibGL.prototype.castRay = function(pos) {
+	var ray = this.getRayBare(this.getEye(), this.getScaleViewInvMatrix(), pos);
+	return this.rayShape.intersectWorld(ray.o, ray.d, this.primitives);
+}
+
+/*
+ * @Override
+ */
 
 
 /*

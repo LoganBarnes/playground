@@ -21,23 +21,44 @@
 
 					<label for="speed">Simulation Speed</label>
 					<input class="slider" type="range" id="speed" type="number" min="1" max="5" step="1" value="1" >
-					<input type="text" id="speedText" value="x1"><br>
+					<label for="speedText">x</label>
+					<input type="text" id="speedText" value="1"><br>
 
 					<label for="gravity">Gravity Constant</label>
 					<input class="slider" type="range" id="gravity" type="number" min="0.01" max="15.0" step="0.01" value="1.0" >
 					<input type="text" id="gravityText" value="1.0"><br>
 
+					<label for="density">Particle Density</label>
+					<input class="slider" type="range" id="density" type="number" min="1" max="500" step="1" value="50" >
+					<input type="text" id="densityText" value="50"><br>
+
 					<input type="checkbox" id="collide" checked> Enable Collisions (C)<br>
 					<input type="checkbox" id="tracker"> Move Origin to Largest Particle (O)<br>
 					<input type="checkbox" id="axes" checked> Show Axes (A)<br>
 
-					<label for="block">New Block Dimension</label>
-					<input class="slider" type="range" id="block" type="number" min="2" max="25" step="1" value="10" >
-					<input type="text" id="blockText" value="10"><br>
+					<div id="block_div">
+						<h4> Create New Particle Block</h4>
+						<label for="block">Block Dimension</label>
+						<input class="slider" type="range" id="block" type="number" min="2" max="25" step="1" value="10" >
+						<input type="text" id="blockText" value="10"><br>
 
-					<label for="random">New Block Randomization</label>
-					<input class="slider" type="range" id="random" type="number" min="0" max="10" step="1" value="3" >
-					<input type="text" id="randomText" value="3"><br>
+						<label for="random">Block Randomization</label>
+						<input class="slider" type="range" id="random" type="number" min="0" max="10" step="1" value="2" >
+						<input type="text" id="randomText" value="2"><br>
+
+						<label for="mass">Block Particle Mass</label>
+						<input class="slider" type="range" id="mass" type="number" min="1" max="100" step="1" value="1" >
+						<input type="text" id="massText" value="1"><br>
+
+						<label for="velocity">Block Velocity Scale</label>
+						<input class="slider" type="range" id="velocity" type="number" min="0" max="10" step="1" value="5" >
+						<input type="text" id="velocityText" value="5"><br>
+
+						<input type="button" id="block_button" value="Add Particles" > (space bar) <br>
+						
+						<input class="float_right" type="button" id="clear_button" value="Clear Particles" >
+						<label class="float_right" for="clear_button">(R)</label>
+					</div>
 
 					<p></p>
 				</div>
@@ -53,7 +74,9 @@
 						MOUSE WHEEL<br>Move whole particle system closer or farther from the camera.<br><br>
 						<strong><u>CAMERA</u></strong><br>(hold SHIFT):<br><br>
 						LEFT MOUSE DRAG<br>Orbit around origin.<br><br>
-						MOUSE WHEEL<br>Zoom in/out on origin.
+						MOUSE WHEEL<br>Zoom in/out on origin.<br><br>
+						X, Y, Z<br>
+						Look down X, Y, or Z axis.
 					</p>
 
 					<p></p>

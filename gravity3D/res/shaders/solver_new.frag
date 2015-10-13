@@ -53,6 +53,11 @@ void main()
 	float dist2, invDist, otherRadius, sumRadius;
 	int counter = 0;
 
+	ivec2 collisionIndex = ivec2(-1);
+	vec4 collisionParticle = vec4(-1);
+	vec3 collisionDirection = vec3(0.0);
+	float collisionDistance = -1.0;
+
 
 	for (int r = 0; r < TEX_SIZE.y; r++)
 	{
@@ -82,35 +87,19 @@ void main()
 			// detect collisions
 			if (uDetectCollisions && dist2 < (radius + otherRadius) * (radius + otherRadius))
 			{
-				bool remove = false;
-				// should actually combine with closest particle, not first contact.
-				if (currPosition.w < otherParticle.w)
-					remove = true;
-				else if (currPosition.w == otherParticle.w && index > r * TEX_SIZE.x + c)
-					remove = true;
-
-				if (remove) // 'delete' this
+				if (dist2 < collisionDistance || collisionDistance < 0.0)
 				{
-					gl_FragColor = vec4(0.0);
-					return;
-				}
-				else // combine the two colliding particles
-				{
-					// calc velocity of other particle from previous position
-					vec3 otherVelocity = (otherParticle.xyz - texture2D(uPrevPositions, (vec2(c, r) + vec2(0.5)) / uViewport).xyz) / uOldDeltaTime;
-
-					// conservation of momentum (perfectly inelastic) : m1 * u1 + m2 * u2 = (m1 + m2) * v
-					vec3 newVel = (otherParticle.w * otherVelocity + currPosition.w * velocity) / (otherParticle.w + currPosition.w);
-					
-					// new particle mass
-					currPosition.w += otherParticle.w;
-
-					/* 
-					 *  f = m * a = m * (v' - v) / t
-					 *  since force is later multiplied by G and m, we divide by it here:
-					 *  (m * (v' - v) / t) / (m * G) = ((v' - v) / t) / G
-					 */
-					force += ((newVel - velocity) / uDeltaTime) / uGravityConstant;
+					// factor previously ignored particle into gravity equation
+					if (collisionDistance > -0.5)
+					{
+						invDist = 1.0 / sqrt(collisionDistance * collisionDistance * collisionDistance); // normalized then divided by dist^2
+						force += collisionDirection * (collisionParticle.w * invDist);
+					}
+					// update collision vars and ignore particle
+					collisionDistance = dist2;
+					collisionDirection = dir;
+					collisionIndex = ivec2(c, r);
+					collisionParticle = otherParticle;
 					continue;
 				}
 			}
@@ -129,6 +118,41 @@ void main()
 			// this is the '|dir| * m2 / r^2' part
 			invDist = 1.0 / sqrt(dist2 * dist2 * dist2); // normalized then divided by dist^2
 			force += dir * (otherParticle.w * invDist);
+		}
+	}
+
+	if (collisionDistance > -0.5)
+	{
+
+		bool remove = false;
+		// should actually combine with closest particle, not first contact.
+		if (currPosition.w < collisionParticle.w)
+			remove = true;
+		else if (currPosition.w == collisionParticle.w && index > collisionIndex.y * TEX_SIZE.x + collisionIndex.x)
+			remove = true;
+
+		if (remove) // 'delete' this
+		{
+			gl_FragColor = vec4(0.0);
+			return;
+		}
+		else // combine the two colliding particles
+		{
+			// calc velocity of other particle from previous position
+			vec3 otherVelocity = (collisionParticle.xyz - texture2D(uPrevPositions, (vec2(collisionIndex) + vec2(0.5)) / uViewport).xyz) / uOldDeltaTime;
+
+			// conservation of momentum (perfectly inelastic) : m1 * u1 + m2 * u2 = (m1 + m2) * v
+			vec3 newVel = (collisionParticle.w * otherVelocity + currPosition.w * velocity) / (collisionParticle.w + currPosition.w);
+			
+			// new particle mass
+			currPosition.w += collisionParticle.w;
+
+			/* 
+			 *  f = m * a = m * (v' - v) / t
+			 *  since force is later multiplied by G and m, we divide by it here:
+			 *  (m * (v' - v) / t) / (m * G) = ((v' - v) / t) / G
+			 */
+			force += ((newVel - velocity) / uDeltaTime) / uGravityConstant;
 		}
 	}
 

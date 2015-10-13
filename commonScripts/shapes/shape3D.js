@@ -6,7 +6,8 @@ var ShapeType = Object.freeze({
 
 	CYLINDER: 			0,
 	SPHERE: 			1,
-	NUM_SHAPE_TYPES: 	2
+	QUAD: 				2,
+	NUM_SHAPE_TYPES: 	3
 	// CONE
 	// CUBE
 	// TORUS
@@ -28,7 +29,7 @@ var Shape3D = function (longitudeBands, latitudeBands) {
 	this.longitudeBands = longitudeBands;
 	this.latitudeBands = latitudeBands;
 	this.vbo = null;
-};
+}
 
 
 // bind the vertex buffer object
@@ -49,7 +50,7 @@ Shape3D.prototype.bindBuffer = function(gl, positionAttribute, normalAttribute, 
 	} else if (this.vbo.itemSize == 8) {
 		gl.vertexAttribPointer(texCoordAttribute, 2, gl.FLOAT, false, stride, step * 6);
 	}
-};
+}
 
 // make the call to drawArrays()
 Shape3D.prototype.render = function (gl) {
@@ -57,7 +58,7 @@ Shape3D.prototype.render = function (gl) {
 		return;
 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.vbo.numItems);
-};
+}
 
 /*
  * Parts a, b, and c of a quadratic formula (see formula below) used to

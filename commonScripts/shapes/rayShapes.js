@@ -1,7 +1,4 @@
 
-var INF = Number.POSITIVE_INFINITY;
-var EPS = 0.0001;
-
 // shape types
 var ShapeType = Object.freeze({
 
@@ -15,23 +12,35 @@ var ShapeType = Object.freeze({
 
 });
 
-var Shape = makeStruct("type trans inv color settings");
+// Example shape object with minimum requirements for arguments
+// var Shape = makeStruct("type trans inv color settings");
+
+/*
+ * Ray Shape 'class'
+ *
+ */
+
+// constuctor
+var RayShape = function () {
+	this.INF = Number.POSITIVE_INFINITY;
+	this.EPS = 0.0001;
+}
 
 //////////////////////////////////////////////
 //             INTERSECTIONS                //
 //////////////////////////////////////////////
 
-function solveQuadratic(a, b, c) {
+RayShape.prototype.solveQuadratic = function(a, b, c) {
 	var discriminant = b * b - 4.0 * a * c;
 
 	// Discriminant is 0. One solution exists.
-	if (Math.abs(discriminant) < EPS) // epsilon value
+	if (Math.abs(discriminant) < this.EPS) // epsilon value
 	{
-		if (Math.abs(b) < EPS)
+		if (Math.abs(b) < this.EPS)
 			return [];
 
-		if (Math.abs(a) < EPS)
-			return [INF];
+		if (Math.abs(a) < this.EPS)
+			return [this.INF];
 
 		// else
 		return [- b / (2.0 * a)];
@@ -50,15 +59,15 @@ function solveQuadratic(a, b, c) {
 
 //////////////////////////////////////// CONE ////////////////////////////////////////
 
-function intersectCone(E, D) {
-	var bestT = INF;
+RayShape.prototype.intersectCone = function(E, D) {
+	var bestT = this.INF;
 	var p = vec3.create();
 
 	var a = D[0] * D[0] + D[2] * D[2] - D[1] * D[1] * 0.25;
 	var b = 2.0 * E[0] * D[0] + 2.0 * E[2] * D[2] - 2.0 * (E[1] * D[1] - D[1]) * 0.25;
 	var c = E[0] * E[0] + E[2] * E[2] - (E[1] * E[1] - 2.0 * E[1] + 1.0) * 0.25;
 
-	var t = solveQuadratic(a, b, c);
+	var t = this.solveQuadratic(a, b, c);
 
 	if (t.length > 0)
 	{
@@ -90,7 +99,7 @@ function intersectCone(E, D) {
 
 //////////////////////////////////////// CUBE ////////////////////////////////////////
 
-function intersectAABB(E, D) {
+RayShape.prototype.intersectAABB = function(E, D) {
 
 	var Di = [1.0 / D[0], 1.0 / D[1], 1.0 / D[2]];
 	var sign = [(Di[0] < 0.0 ? 1 : 0), (Di[1] < 0.0 ? 1 : 0), (Di[2] < 0.0 ? 1 : 0)];
@@ -121,12 +130,12 @@ function intersectAABB(E, D) {
 	if (tzmax < tmax)
 		tmax = tzmax;
 
-	if ( (tmin < INF) && (tmax > 0.0) )
+	if ( (tmin < this.INF) && (tmax > 0.0) )
 		return true;
 	return false;
 }
 
-function intersectCube(E, D) {
+RayShape.prototype.intersectCube = function(E, D) {
 
 	var Di = [1.0 / D[0], 1.0 / D[1], 1.0 / D[2]];
 	var sign = [(Di[0] < 0.0 ? 1 : 0), (Di[1] < 0.0 ? 1 : 0), (Di[2] < 0.0 ? 1 : 0)];
@@ -140,7 +149,7 @@ function intersectCube(E, D) {
 	tymax = (bounds[1-sign[1]][1] - E[1]) * Di[1];
 
 	if ( (tmin > tymax) || (tymin > tmax) ) 
-		return INF;
+		return this.INF;
 
 	if (tymin > tmin)
 		tmin = tymin;
@@ -150,29 +159,29 @@ function intersectCube(E, D) {
 	tzmax = (bounds[1-sign[2]][2] - E[2]) * Di[2];
 
 	if ( (tmin > tzmax) || (tzmin > tmax) ) 
-		return INF;
+		return this.INF;
 
 	if (tzmin > tmin)
 		tmin = tzmin;
 	if (tzmax < tmax)
 		tmax = tzmax;
 
-	if ( (tmin < INF) && (tmax > 0.0) )
+	if ( (tmin < this.INF) && (tmax > 0.0) )
 		return (tmin < 0.0 ? tmax : tmin);
-	return INF;
+	return this.INF;
 }
 
 //////////////////////////////////////// CYLINDER ////////////////////////////////////////
 
-function intersectCylinder(E, D) {
-	var bestT = INF;
+RayShape.prototype.intersectCylinder = function(E, D) {
+	var bestT = this.INF;
 	var p = vec3.create();
 
 	var a = vec2.dot([D[0],D[2]], [D[0],D[2]]);
 	var b = 2.0 * vec2.dot([D[0],D[2]], [E[0],E[2]]);
 	var c = vec2.dot([E[0],E[2]], [E[0],E[2]]) - 1.0;
 
-	var t = solveQuadratic(a, b, c);
+	var t = this.solveQuadratic(a, b, c);
 
 	if (t.length > 0)
 	{
@@ -198,7 +207,7 @@ function intersectCylinder(E, D) {
 	t = (1.0 - E[1]) / D[1];
 	vec3.scale(p, D, t);
 	vec3.add(p, E, p);
-	if (t < bestT && t > 0.0 && ((p[0] * p[0] + p[2] * p[2]) - 1.0) <= EPS) {
+	if (t < bestT && t > 0.0 && ((p[0] * p[0] + p[2] * p[2]) - 1.0) <= this.EPS) {
 		bestT = t;
 	}
 
@@ -216,8 +225,8 @@ function intersectCylinder(E, D) {
 
 //////////////////////////////////////// HOLLOW CYLINDER ////////////////////////////////////////
 
-function intersectHollowCylinder(E, D, outerRadius) {
-	var bestT = INF;
+RayShape.prototype.intersectHollowCylinder = function(E, D, outerRadius) {
+	var bestT = this.INF;
 	var p = vec3.create();
 
 	var radius_inner = 1.0 - (outerRadius * 2.0);
@@ -227,8 +236,8 @@ function intersectHollowCylinder(E, D, outerRadius) {
 	var c_out = vec2.dot([E[0],E[2]], [E[0],E[2]]) - 1.0;
 	var c_in = vec2.dot([E[0],E[2]], [E[0],E[2]]) - radius_inner * radius_inner;
 
-	var t_out = solveQuadratic(a, b, c_out);
-	var t_in = solveQuadratic(a, b, c_in);
+	var t_out = this.solveQuadratic(a, b, c_out);
+	var t_in = this.solveQuadratic(a, b, c_in);
 
 	if (t_out.length > 0)
 	{
@@ -299,15 +308,15 @@ function intersectHollowCylinder(E, D, outerRadius) {
 
 //////////////////////////////////////// SPHERE ////////////////////////////////////////
 
-function intersectSphere(E, D) {
-	var bestT = INF;
+RayShape.prototype.intersectSphere = function(E, D) {
+	var bestT = this.INF;
 	var p = vec3.create();
 
 	var a = vec3.dot(D, D);
 	var b = 2.0 * vec3.dot(D, E);
 	var c = vec3.dot(E, E) - 1.0;
 
-	var t = solveQuadratic(a, b, c);
+	var t = this.solveQuadratic(a, b, c);
 
 
 	if (t.length > 0)
@@ -330,19 +339,19 @@ function intersectSphere(E, D) {
 
 //////////////////////////////////////// PLANE ////////////////////////////////////////
 
-function intersectPlane(E, D) {
+RayShape.prototype.intersectPlane = function(E, D) {
 	var t = (-E[2]) / D[2];
 	var p = vec3.create();
 	vec3.scale(p, D, t);
 	vec3.add(p, E, p);
 
-	if (t < INF && t > 0.0) {
+	if (t < this.INF && t > 0.0) {
 		if (p[0] >= -1.0 && p[0] <= 1.0 && p[1] >= -1.0 && p[1] <= 1.0) {
 			return t;
 		}
 	}
 
-	return INF;
+	return this.INF;
 }
 
 
@@ -350,9 +359,9 @@ function intersectPlane(E, D) {
 
 
 // check for intersections with every icon except the excluded one
-function intersectWorld(ro, rd, shapes) {
-	var best = INF;
-	var temp = INF;
+RayShape.prototype.intersectWorld = function(ro, rd, shapes) {
+	var best = this.INF;
+	var temp = this.INF;
 	var index = -1;
 
 	var s;
@@ -367,12 +376,12 @@ function intersectWorld(ro, rd, shapes) {
 		vec4.transformMat4(D, rd, s.inv);
 
 		// check bounding box first
-		if (!intersectAABB(E, D, INF))
+		if (!this.intersectAABB(E, D, this.INF))
 			continue;
 
 		if (s.type == ShapeType.CONE)
 		{
-			temp = intersectCone(E, D);
+			temp = this.intersectCone(E, D);
 			if (temp < best)
 			{
 				best = temp;
@@ -381,7 +390,7 @@ function intersectWorld(ro, rd, shapes) {
 		}
 		else if (s.type == ShapeType.CUBE)
 		{
-			temp = intersectCube(E, D);
+			temp = this.intersectCube(E, D);
 			if (temp < best)
 			{
 				best = temp;
@@ -390,7 +399,7 @@ function intersectWorld(ro, rd, shapes) {
 		}
 		else if (s.type == ShapeType.CYLINDER)
 		{
-			temp = intersectCylinder(E, D);
+			temp = this.intersectCylinder(E, D);
 			if (temp < best)
 			{
 				best = temp;
@@ -399,7 +408,7 @@ function intersectWorld(ro, rd, shapes) {
 		}
 		else if (s.type == ShapeType.HOLLOW_CYLINDER)
 		{
-			temp = intersectHollowCylinder(E, D, s.settings[3]);
+			temp = this.intersectHollowCylinder(E, D, s.settings[3]);
 			if (temp < best)
 			{
 				best = temp;
@@ -408,7 +417,7 @@ function intersectWorld(ro, rd, shapes) {
 		}
 		else if (s.type == ShapeType.SPHERE)
 		{
-			temp = intersectSphere(E, D);
+			temp = this.intersectSphere(E, D);
 			if (temp < best)
 			{
 				best = temp;
@@ -417,7 +426,7 @@ function intersectWorld(ro, rd, shapes) {
 		}
 		else if (s.type == ShapeType.PLANE)
 		{
-			temp = intersectPlane(E, D);
+			temp = this.intersectPlane(E, D);
 			if (temp < best)
 			{
 				best = temp;

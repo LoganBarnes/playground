@@ -11,31 +11,29 @@
 
 	<body>
 
-		<div id="page">
-
 <!--		canvas 		-->
-			<div id="loading_div">
-				<div id="canvas_div">
-					<canvas id="canvas"></canvas>
-				</div>
+		<div id="page">
+			<div id="canvas_div">
+				<canvas id="canvas"></canvas>
 			</div>
+		</div>
 
-			<div id="loading"></div>
+		<div id="loading"></div>
 
 <!--		options 		-->
-			<div id="options_div">
-				<h2 stlye="text-align:center;"> Real-Time Renderer </h2>
+		<div id="options_div">
+			<h2 stlye="text-align:center;"> Real-Time Renderer </h2>
 
-				<div id="global_controls">
-					<label for="shadows">shadows
-						<input type="checkbox" name="shadows" class="shadows" />
-					</label>
+			<div id="global_controls">
 
-					<label for="brightness">brightness<span class="brightness">1.0</span>
-						<input type="range" name="brightness" class="brightness-slider" min="0" max="10.0" step="0.05" value="1.0" />
-					</label>
-				</div>
+				<label for="brightness">Brightness</label>
+				<input type="text" id="brightnessText" value="1.0">
+				<input type="range" id="brightness" class="brightness-slider" min="0" max="10.0" step="0.05" value="1.0" /><br>
 
+				<input type="checkbox" id="antialiasing"> Antialiasing<br>
+				<input type="checkbox" id="shadows"> Shadows<br>
+				<input type="checkbox" id="reflections"> Reflections<br>
+				<!-- <input type="range" id="iterations" min="1" max="5" step="1" value="3" /> Iterations<br> -->
 			</div>
 
 		</div>
@@ -45,7 +43,8 @@
 		<script type="text/javascript">
 
 			loadScripts([	"../commonScripts/util/util.min.js",
-							"scripts/shape-collisions.js",
+							"../commonScripts/shapes/rayShapes.js",
+							"../commonScripts/webglLib/webgl-lib-ray.js",
 							"scripts/webgl-render.js"],
 				function() {
 					main();

@@ -23,8 +23,10 @@ variable.theme_url = ".";
 		MUSIC: 		1,
 		SPACE: 		2,
 		RENDER: 	3,
-		LOGO: 		4,
-		NUM_ICONS:  5
+		FFT: 		4,
+		DEFAULT: 	5,
+		LOGO: 		6,
+		NUM_ICONS:  7
 	});
 
 	this.mainRadius = 8.0;
@@ -34,18 +36,27 @@ variable.theme_url = ".";
 	this.Box = makeStruct("min max center angle scale animate time");
 	this.Shape = makeStruct("center scale primitive");
 
-	this.gravityBox = new this.Box([R, R, R], [R, R, R], [0, 2, 0],   0, [1,   1,   1], false);
-	this.musicBox   = new this.Box([R, R, R], [R, R, R], [0, 2, 0], 180, [1,   1,   1], false);
-	this.spaceBox   = new this.Box([R, R, R], [R, R, R], [0, 2, 0],  90, [1,   1,   1], false);
-	this.rayBox     = new this.Box([R, R, R], [R, R, R], [0, 2, 0], -90, [1,   1,   1], false);
-	this.logoBox    = new this.Box([R, R, R], [R, R, R], [0, 2, 0],   0, [4, 1.5, 0.5], false);
+	this.gravityBox = new this.Box([R, R, R], [R, R, R], [0, 2, 0], 0, [1,   1,   1], false);
+	this.musicBox   = new this.Box([R, R, R], [R, R, R], [0, 2, 0], 0, [1,   1,   1], false);
+	this.spaceBox   = new this.Box([R, R, R], [R, R, R], [0, 2, 0], 0, [1,   1,   1], false);
+	this.rayBox     = new this.Box([R, R, R], [R, R, R], [0, 2, 0], 0, [1,   1,   1], false);
+	this.fftBox     = new this.Box([R, R, R], [R, R, R], [0, 2, 0], 0, [1,   1,   1], false);
+	this.defaultBox = new this.Box([R, R, R], [R, R, R], [0, 2, 0], 0, [1,   1,   1], false);
+	this.logoBox    = new this.Box([R, R, R], [R, R, R], [0, 2, 0], 0, [4, 1.5, 0.5], false);
 
-	this.boxes = [this.gravityBox, this.musicBox, this.spaceBox, this.rayBox, this.logoBox];
+	this.boxes = [this.gravityBox, this.musicBox, this.spaceBox, this.rayBox, this.fftBox, this.defaultBox, this.logoBox];
+
+	var num = this.boxes.length - 1;
+	for (var i = 0; i < num; ++i) {
+		this.boxes[i].angle = i * 360 / num;
+	}
 
 	this.gravityShapes = [];
 	this.musicShapes = [];
 	this.spaceShapes = [];
 	this.renderShapes = [];
+	this.fftShapes = [];
+	this.defaultShapes = [];
 
 	this.musicFunction = [];
 
@@ -401,12 +412,149 @@ MenuLibGL.prototype.setUpRenderIcons = function() {
 }
 
 
+/*
+                                               
+8 8888888888   8 8888888888 8888888 8888888888 
+8 8888         8 8888             8 8888       
+8 8888         8 8888             8 8888       
+8 8888         8 8888             8 8888       
+8 888888888888 8 888888888888     8 8888       
+8 8888         8 8888             8 8888       
+8 8888         8 8888             8 8888       
+8 8888         8 8888             8 8888       
+8 8888         8 8888             8 8888       
+8 8888         8 8888             8 8888       
+*/
+
+var fftTime = -180;
+MenuLibGL.prototype.animateFFTIcons = function(deltaTime) {
+	fftTime += deltaTime;
+	this.fftShapes[0].primitive.settings[3] = Math.sin(fftTime) * 0.5 + 0.5;
+}
+
+MenuLibGL.prototype.updateFFTIcons = function() {
+
+	var s = this.fftShapes[0];
+	var prim = s.primitive;
+
+	mat4.identity(prim.trans);
+	mat4.translate(prim.trans, prim.trans, this.boxes[this.Icon.FFT].center);
+	mat4.translate(prim.trans, prim.trans, s.center);
+	mat4.rotate(prim.trans, prim.trans, degToRad(20), [-1, 0, 0]);
+	mat4.scale(prim.trans, prim.trans, s.scale);
+	mat4.invert(prim.invT, prim.trans);
+	mat4.transpose(prim.invT, prim.invT);
+}
+
+MenuLibGL.prototype.setUpFFTIcons = function() {
+
+	var center = [0, 0, 0];
+	var color;
+	var scale;
+	var prim;
+
+	color = [1, 1, 1, 1];
+	scale = [0.8, 0.8, 0.8];
+	prim = this.addPrimitive(ShapeType.QUAD, mat4.create(), color, [1.0, 1.0, 1.0, 1.0], "fft");
+	this.fftShapes.push(new this.Shape(center, scale, prim));
+
+	this.animateFFTIcons(0.0);
+	this.updateFFTIcons();
+}
+
+
+/*
+                                                                                                          
+8 888888888o.      8 8888888888   8 8888888888       .8.       8 8888      88 8 8888   8888888 8888888888 
+8 8888    `^888.   8 8888         8 8888            .888.      8 8888      88 8 8888         8 8888       
+8 8888        `88. 8 8888         8 8888           :88888.     8 8888      88 8 8888         8 8888       
+8 8888         `88 8 8888         8 8888          . `88888.    8 8888      88 8 8888         8 8888       
+8 8888          88 8 888888888888 8 888888888888 .8. `88888.   8 8888      88 8 8888         8 8888       
+8 8888          88 8 8888         8 8888        .8`8. `88888.  8 8888      88 8 8888         8 8888       
+8 8888         ,88 8 8888         8 8888       .8' `8. `88888. 8 8888      88 8 8888         8 8888       
+8 8888        ,88' 8 8888         8 8888      .8'   `8. `88888.` 8888     ,8P 8 8888         8 8888       
+8 8888    ,o88P'   8 8888         8 8888     .888888888. `88888. 8888   ,d8P  8 8888         8 8888       
+8 888888888P'      8 888888888888 8 8888    .8'       `8. `88888. `Y88888P'   8 888888888888 8 8888       
+*/
+
+var defaultTime = -103.4; // random but good initial points
+MenuLibGL.prototype.animateDefaultIcons = function(deltaTime) {
+	defaultTime += deltaTime;
+	this.updateDefaultIcons();
+}
+
+MenuLibGL.prototype.updateDefaultIcons = function() {
+
+	var s = this.defaultShapes[0];
+	var prim = s.primitive;
+
+	mat4.identity(prim.trans);
+	mat4.translate(prim.trans, prim.trans, this.boxes[this.Icon.DEFAULT].center);
+	mat4.translate(prim.trans, prim.trans, s.center);
+	mat4.rotate(prim.trans, prim.trans, defaultTime, [0, 1, 0]);
+	mat4.scale(prim.trans, prim.trans, s.scale);
+	mat4.invert(prim.invT, prim.trans);
+	mat4.transpose(prim.invT, prim.invT);
+}
+
+MenuLibGL.prototype.setUpDefaultIcons = function() {
+
+	var center = [0, 0, 0];
+	var color;
+	var scale;
+	var prim;
+
+	color = [1, 1, 1, 1];
+	scale = [0.7, 0.7, 0.7];
+	prim = this.addPrimitive(ShapeType.SPHERE, mat4.create(), color, [0.0, 0.0, 1.0, 0.0], "earth");
+	this.defaultShapes.push(new this.Shape(center, scale, prim));
+
+	this.animateDefaultIcons(0.0);
+}
+
+
+/*
+                                                    
+         .8.          8 8888         8 8888         
+        .888.         8 8888         8 8888         
+       :88888.        8 8888         8 8888         
+      . `88888.       8 8888         8 8888         
+     .8. `88888.      8 8888         8 8888         
+    .8`8. `88888.     8 8888         8 8888         
+   .8' `8. `88888.    8 8888         8 8888         
+  .8'   `8. `88888.   8 8888         8 8888         
+ .888888888. `88888.  8 8888         8 8888         
+.8'       `8. `88888. 8 888888888888 8 888888888888 
+*/
+
+MenuLibGL.prototype.updateIcons = function() {
+	this.updateGravityIcons();
+	this.updateMusicIcons();
+	this.updateSpaceIcons();
+	this.updateRenderIcons();
+	this.updateFFTIcons();
+	this.updateDefaultIcons();
+}
+
+MenuLibGL.prototype.setUpIcons = function() {
+	this.setUpGravityIcons();
+	this.setUpMusicIcons();
+	this.setUpSpaceIcons();
+	this.setUpRenderIcons();
+	this.setUpFFTIcons();
+	this.setUpDefaultIcons();
+}
+
+
 ////////////////////////////////////////////////////////////////////
 //////////////////////// SELECTION FUNCTIONS ///////////////////////
 ////////////////////////////////////////////////////////////////////
 
 MenuLibGL.prototype.selectIcon = function(index) {
+	
 	if (index < 0) {
+		// jQuery('.hidden').hide();
+		// jQuery('#summary').fadeOut();
 		return;
 	}
 	this.selected = index;
@@ -437,6 +585,14 @@ MenuLibGL.prototype.selectIcon = function(index) {
 		case this.Icon.RENDER:
 			jQuery('#summary').fadeIn();
 			jQuery('#render_div').fadeIn();
+			break;
+		case this.Icon.FFT:
+			jQuery('#summary').fadeIn();
+			jQuery('#fft_div').fadeIn();
+			break;
+		case this.Icon.DEFAULT:
+			jQuery('#summary').fadeIn();
+			jQuery('#default_div').fadeIn();
 			break;
 		default:
 			break;
@@ -575,6 +731,10 @@ MenuLibGL.prototype.setCameraAndLightUniforms = function(program) {
 	this.gl.uniform1i(this.getUniform(program, "uCubeMap"), 1);
 
 	this.gl.uniform4fv(this.getUniform(program, "uEyePos"), this.getEye());
+
+	this.gl.activeTexture(this.gl.TEXTURE2);
+	this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["lenna"]);
+	this.gl.uniform1i(this.getUniform(program, "uAltTexture"), 2);
 }
 
 // /*
@@ -661,10 +821,7 @@ MenuLibGL.prototype.updatePos = function(deltaTime) {
 		vec3.add(box.max, box.max, diff);
 	}
 
-	this.updateGravityIcons();
-	this.updateMusicIcons();
-	this.updateSpaceIcons();
-	this.updateRenderIcons();
+	this.updateIcons();
 }
 
 MenuLibGL.prototype.animate = function(deltaTime) {
@@ -680,6 +837,12 @@ MenuLibGL.prototype.animate = function(deltaTime) {
 			break;
 		case this.Icon.RENDER:
 			this.animateRenderIcons(deltaTime);
+			break;
+		case this.Icon.FFT:
+			this.animateFFTIcons(deltaTime);
+			break;
+		case this.Icon.DEFAULT:
+			this.animateDefaultIcons(deltaTime);
 			break;
 		default:
 			break;
@@ -697,6 +860,12 @@ MenuLibGL.prototype.animate = function(deltaTime) {
 			break;
 		case this.Icon.RENDER:
 			this.animateRenderIcons(deltaTime);
+			break;
+		case this.Icon.FFT:
+			this.animateFFTIcons(deltaTime);
+			break;
+		case this.Icon.DEFAULT:
+			this.animateDefaultIcons(deltaTime);
 			break;
 		default:
 			break;
@@ -746,7 +915,7 @@ MenuLibGL.prototype.tick = function() {
  * @Override
  */
 MenuLibGL.prototype.resizeCanvas = function() {
-	var w = Math.max(500, Math.floor(window.innerWidth * 0.8));
+	var w = Math.max(500, Math.floor(window.innerWidth * 0.7));
 	// var h = Math.floor(w * 0.485);
 	var h = Math.floor(w * 0.56);
 	this.resize(w, h);
@@ -806,7 +975,7 @@ MenuLibGL.prototype.initShaders = function() {
 					// uniforms
 					["uAmbientRadiance", "uLightScale", "uPVMatrix", "uMMatrix", "uMMatrixIT",
 					 "uLightLocation", "uColor", "uShapeSettings", "uShapeTexture",
-					 "uCubeMap", "uEyePos", "uFunctionSize"]);
+					 "uCubeMap", "uEyePos", "uFunctionSize", "uAltSettings", "uAltTexture"]);
 }
 
 /*
@@ -816,6 +985,8 @@ MenuLibGL.prototype.initShaders = function() {
 MenuLibGL.prototype.initTextures = function() {
 	this.addTexture("earth", new Uint8Array([50, 50, 50, 225]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/menu/res/images/earth.jpg");
 	this.addTexture("normals", new Uint8Array([127, 127, 255, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/menu/res/images/sphere-normals.jpg");
+	this.addTexture("lenna", new Uint8Array([127, 127, 255, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/menu/res/images/lenna.png");
+	this.addTexture("fft", new Uint8Array([127, 127, 255, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/menu/res/images/fft_shift.png");
 	this.setCubeMap("reflection", "default", [127,127,127,255], variable.theme_url + "/menu/res/images/cubemap", 256, ".jpeg");
 }
 
@@ -837,10 +1008,7 @@ MenuLibGL.prototype.initBoxes = function() {
 		vec3.add(box.max, box.center, box.max); 
 	}
 
-	this.setUpGravityIcons();
-	this.setUpMusicIcons();
-	this.setUpSpaceIcons();
-	this.setUpRenderIcons();
+	this.setUpIcons();
 }
 
 /*

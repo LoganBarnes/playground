@@ -129,32 +129,21 @@ SubLibGL.prototype.setScene = function() {
 	mat4.identity(trans);
 	this.addPrimitive(ShapeType.SPHERE, trans, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 1.0, 0.0], "earth");
 
-	mat4.identity(trans);
-	mat4.translate(trans, trans, [0, 3, 0]);
-	this.addModelJSON("ltb", variable.theme_url + "/res/objects/ltb.json",
-						trans, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 0.0], "");
-
-	// add a textured quad buffer
+	// add a textured quad
 	mat4.identity(trans);
 	mat4.translate(trans, trans, [0, -3, 0]);
 	mat4.rotateY(trans, trans, degToRad(45));
 	mat4.scale(trans, trans, [2, 1, 1]);
-	var data = [ 1,  1, 0, 0, 0,  1, 1, 0,
-				-1, -1, 0, 0, 0,  1, 0, 1,
-				 1, -1, 0, 0, 0,  1, 1, 1,
+	this.addPrimitive(ShapeType.QUAD, trans, [0.4, 1, 0.4], [64.0, 0.0, 1.0, 0.0], "logo");
 
-				-1,  1, 0, 0, 0,  1, 0, 0,
-				-1, -1, 0, 0, 0,  1, 0, 1,
-				 1,  1, 0, 0, 0,  1, 1, 0,
+	mat4.rotateY(trans, trans, degToRad(180));
+	this.addPrimitive(ShapeType.QUAD, trans, [0.4, 1, 0.4], [64.0, 0.0, 1.0, 0.0], "logo");
 
-				-1,  1, 0, 0, 0, -1, 0, 0,
-				 1,  1, 0, 0, 0, -1, 1, 0,
-				-1, -1, 0, 0, 0, -1, 0, 1,
-
-				 1,  1, 0, 0, 0, -1, 1, 0,
-				 1, -1, 0, 0, 0, -1, 1, 1,
-				-1, -1, 0, 0, 0, -1, 0, 1];
-	this.addBuffer("triangle", data, 8, trans, [0.4, 1, 0.4], [64.0, 0.0, 1.0, 0.0], "logo", this.gl.TRIANGLES);
+	// add the LTB model
+	mat4.identity(trans);
+	mat4.translate(trans, trans, [0, 3, 0]);
+	this.addModelJSON("ltb", variable.theme_url + "/res/objects/ltb.json",
+						trans, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 0.0], "");
 }
 
 /*

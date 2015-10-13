@@ -1,6 +1,6 @@
 
 
-html, body, #page {
+html, body {
 	height: auto;
 	width: auto;
 	/*background-color: yellow;*/
@@ -11,20 +11,6 @@ h2 {
 	width: 100%;
 	text-align: center;
 	padding: 10px;
-}
-label {
-	display: block;
-	padding-left: 10px;
-	/*font-family: monospace;*/
-	/*line-height: 20px;*/
-	/*text-shadow: 1px 1px 3px #ccc;*/
-}
-input {
-	display: inline-block;
-	float: right;
-	width: 35%;
-	padding-right: 10px;
-	min-width: 100px;
 }
 span {
 	display: inline-block;
@@ -69,7 +55,7 @@ span {
 
 
 
-/*#loading_div {
+/*#page {
 	display: none;
 }
 #loading {

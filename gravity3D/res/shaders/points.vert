@@ -2,13 +2,13 @@ precision highp float;
 precision highp int;
 
 const float PI = 3.14159265359;
-const float DENSITY = 50.0;
 
 attribute float aPosition;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 
+uniform float uDensity;
 uniform float uTextureSize;
 uniform int uScreenHeight;
 
@@ -34,7 +34,7 @@ void main(void) {
 	vUseParticle = 1.0;
 
 	 // function of mass and density
-	float radius = pow((3.0 * position.w) / (DENSITY * 4.0 * PI), 1.0 / 3.0);
+	float radius = pow((3.0 * position.w) / (uDensity * 4.0 * PI), 1.0 / 3.0);
 
 	gl_Position = uPMatrix * uMVMatrix * vec4(position.xyz, 1.0);
 	gl_PointSize = float(uScreenHeight) * uPMatrix[1][1] * radius / gl_Position.w;

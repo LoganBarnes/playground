@@ -26,6 +26,8 @@ uniform vec3 uColor;
 uniform vec4 uShapeSettings; // isMusicIcon, isRenderIcon, useTexture, isLight
 uniform sampler2D uShapeTexture;
 
+uniform sampler2D uAltTexture;
+
 uniform samplerCube uCubeMap;
 uniform vec4 uEyePos;
 
@@ -39,7 +41,7 @@ void main(){
 	}
 
 	vec3 normal = vNormal;
-	if (uShapeSettings[1] > 0.5)
+	if (uShapeSettings[1] > 0.5 && uShapeSettings[0] < 0.5)
 	{
 		float theta = acos(vNormal.y);
 		float phi = atan(vNormal.z, vNormal.x);
@@ -53,7 +55,7 @@ void main(){
 	}
 
 	vec3 color = vec3(0.0);
-	if (uShapeSettings[3] < 0.5)
+	if (uShapeSettings[3] < 0.5 || uShapeSettings[0] + uShapeSettings[1] + uShapeSettings[2] > 2.95)
 	{
 		vec3 vToL;
 		float cosTheta, diffuseIntensity;
@@ -84,9 +86,17 @@ void main(){
 		
 		if (uShapeSettings[2] > 0.5)
 		{
-			color *= texture2D(uShapeTexture, vTexc).xyz;
+			vec3 texture1 = texture2D(uShapeTexture, vTexc).xyz;
+
+			if (uShapeSettings[0] > 0.5 && uShapeSettings[1] > 0.5)
+			{
+				vec3 texture2 = texture2D(uAltTexture, vTexc).xyz;
+				color *= mix(texture1, texture2, uShapeSettings[3]);
+			}
+			else
+				color *= texture1;
 		}
-		if (uShapeSettings[1] > 0.5)
+		if (uShapeSettings[1] > 0.5 && uShapeSettings[0] < 0.5)
 		{
 			color *= textureCube(uCubeMap, normal).xyz;
 
