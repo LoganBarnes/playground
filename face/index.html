@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width">
+		<title>Webcam Filter</title>
+
+		<!-- styles -->
+		<link type="text/css" href="styles/style.css" rel="stylesheet"></link>
+
+
+
+	</head>
+	<body>
+
+		<div id="page">
+			<div id="canvas_div">
+				<canvas id="canvas"></canvas>
+			</div>
+		</div>
+		<div id="loading"></div>
+
+		<div id="options">
+			<br>
+			<table>
+				<caption><b>Images:</b></caption>
+				<tr>
+					<td><button id="vid_button">
+						<video id="video">
+							Your browser doesn't appear to support the HTML5 <code>&lt;video&gt;</code> element.
+						</video>
+					</button></td>
+					<td><button id="lenna_button"><img src="res/images/lenna.png"/></button></td>
+				</tr>
+			</table>
+		</div>
+
+		
+		<!-- jQuery -->
+		<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+		<!-- script loading-->
+		<script type="text/javascript" src="../commonScripts/scriptLoader.js"></script>
+		<script type="text/javascript">
+
+			loadScripts([	"../commonScripts/util/util.min.js",
+							"../commonScripts/shapes/shapes.min.js",
+							"../commonScripts/webglLib/webgl-lib.js",
+							"scripts/webgl-face.js"],
+				function() {
+					main();
+			});
+
+		</script>
+		
+	</body>
+</html>
