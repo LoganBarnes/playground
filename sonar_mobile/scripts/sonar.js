@@ -27,7 +27,7 @@ pre.innerHTML = myScript.innerHTML;
 var channels = 2;
 // Create an empty two second stereo buffer at the
 // sample rate of the AudioContext
-var frameCount = audioCtx.sampleRate * 2.0;
+var frameCount = audioCtx.sampleRate * 0.1;
 
 var myArrayBuffer = audioCtx.createBuffer(channels, frameCount, audioCtx.sampleRate);
 

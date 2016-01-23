@@ -1,18 +1,23 @@
 
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
 var variable = [];
-variable.theme_url = ".";
+variable.theme_url = "./res";
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
+
+
+// FPS Tracker
+javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();stats.domElement.style.cssText='position:fixed;left:0;top:0;z-index:10000';document.body.appendChild(stats.domElement);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//rawgit.com/mrdoob/stats.js/master/build/stats.min.js';document.head.appendChild(script);})()
+
 
 /*
  * Create a sub LibGL class to override functions and add
  * advanced functionality without having to completely
  * recreate a new WebGL setup.
  */
- function GravityLibGL() {
- 	LibGL.call(this);
+function GravityLibGL() {
+	LibGL.call(this);
 
- 	this.TEXTURE_SIZE = 128;
+	this.TEXTURE_SIZE = 128;
 	this.MAX_PARTICLES = this.TEXTURE_SIZE * this.TEXTURE_SIZE;
 
 	this.gridSize = 25;
@@ -364,22 +369,13 @@ GravityLibGL.prototype.updateHTML = function() {
 	this.totalParticles = this.pixData[3];
 
 	var str = "<p>Total Particles: " +
-				this.totalParticles + "<br>";// +
-				// this.pixData[0] + "<br>" +
-				// this.pixData[1] + "<br>" +
-				// this.pixData[2] + "<br>"
-				// "</p>";
+				this.totalParticles + "<br>";
 
 	// read biggest particle position
 	this.bindFramebuffer("solverBuffer", "new");
 	this.gl.readPixels(this.pixData[0], this.pixData[1], 1, 1, this.gl.RGBA, this.gl.FLOAT, this.pixData);
 
 	var mass = this.pixData[3];
-	// str += "(" + this.pixData[0].toFixed(2) + ", " +
-	// 			 this.pixData[1].toFixed(2) + ", " +
-	// 			 this.pixData[2].toFixed(2) + ", " +
-	// 			 mass.toFixed(2) + ")" +
-	// 			"</p>";
 	str += "Mass of largest particle: " + mass + "</p>";
 
 	this.HTMLElements["info"].innerHTML = str;
@@ -533,14 +529,14 @@ GravityLibGL.prototype.render = function() {
 GravityLibGL.prototype.initShaders = function() {
 
 	// sparse shaders
-	this.addProgram("sparse", variable.theme_url + "/res/shaders/sparse.vert", variable.theme_url + "/res/shaders/sparse.frag",
+	this.addProgram("sparse", variable.theme_url + "/shaders/sparse.vert", variable.theme_url + "/shaders/sparse.frag",
 					// attributes
 					["aPosition"],
 					// uniforms
 					["uPVMatrix", "uMMatrix", "uColor"]);
 
 	// point shaders
-	this.addProgram("points", variable.theme_url + "/res/shaders/points.vert", variable.theme_url + "/res/shaders/points.frag",
+	this.addProgram("points", variable.theme_url + "/shaders/points.vert", variable.theme_url + "/shaders/points.frag",
 					// attributes
 					["aPosition"],
 					// uniforms
@@ -548,7 +544,7 @@ GravityLibGL.prototype.initShaders = function() {
 					 "uTexture", "uDensity"]);
 
 	// solver shaders
-	this.addProgram("solver", variable.theme_url + "/res/shaders/solver.vert", variable.theme_url + "/res/shaders/solver.frag",
+	this.addProgram("solver", variable.theme_url + "/shaders/solver.vert", variable.theme_url + "/shaders/solver.frag",
 					// attributes
 					["aPosition"],
 					// uniforms
@@ -556,7 +552,7 @@ GravityLibGL.prototype.initShaders = function() {
 					"uViewport", "uDeltaTime", "uOldDeltaTime", "uDetectCollisions",
 					"uGravityConstant", "uDensity"]);
 
-	this.addProgram("reduce", variable.theme_url + "/res/shaders/reduce.vert", variable.theme_url + "/res/shaders/reduce.frag",
+	this.addProgram("reduce", variable.theme_url + "/shaders/reduce.vert", variable.theme_url + "/shaders/reduce.frag",
 					// attributes
 					["aPosition"],
 					// uniforms

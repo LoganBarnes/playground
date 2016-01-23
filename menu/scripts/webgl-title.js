@@ -1,7 +1,7 @@
 
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
 var variable = [];
-variable.theme_url = ".";
+variable.theme_url = "./menu/res";
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
 
 
@@ -455,7 +455,7 @@ MenuLibGL.prototype.setUpFFTIcons = function() {
 
 	color = [1, 1, 1, 1];
 	scale = [0.8, 0.8, 0.8];
-	prim = this.addPrimitive(ShapeType.QUAD, mat4.create(), color, [1.0, 1.0, 1.0, 1.0], "fft");
+	prim = this.addPrimitive(ShapeType.QUADXY, mat4.create(), color, [1.0, 1.0, 1.0, 1.0], "fft");
 	this.fftShapes.push(new this.Shape(center, scale, prim));
 
 	this.animateFFTIcons(0.0);
@@ -702,8 +702,16 @@ MenuLibGL.prototype.handleMouseMove = function(mouseEvent) {
  * @Override
  */
 MenuLibGL.prototype.handleMouseWheel = function(mouseEvent) {
-	// don't need to disable default functionality for this
-	// (it's disabled in the super function)
+	// don't want the super class functionality
+}
+
+/*
+ * Gets called on every frame and updates settings
+ * based on currently pressed keys.
+ * @Override
+ */
+MenuLibGL.prototype.handleInput = function() {
+	// don't want the super class functionality
 }
 
 
@@ -736,19 +744,6 @@ MenuLibGL.prototype.setCameraAndLightUniforms = function(program) {
 	this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["lenna"]);
 	this.gl.uniform1i(this.getUniform(program, "uAltTexture"), 2);
 }
-
-// /*
-//  * Used by the 'shadowmap' and 'default' programs to set shape uniforms
-//  * when rendering the scene.
-//  * @Override
-//  */
-// MenuLibGL.prototype.setShapeUniforms = function(s, program, args) {
-// 	this.gl.uniform4fv(this.getUniform(program, "uShapeSettings"), s.settings);
-// 	this.gl.uniform3f(this.getUniform(program, "uColor"), s.color[0], s.color[1], s.color[2]);
-
-// 	this.gl.uniformMatrix4fv(this.getUniform(program, "uMMatrix"), false, s.trans);
-// 	this.gl.uniformMatrix4fv(this.getUniform(program, "uMMatrixIT"), false, s.invT);
-// }
 
 MenuLibGL.prototype.setShapeUniforms = function(sm, program, args) {
 	this.gl.uniform4fv(this.getUniform(program, "uShapeSettings"), sm.settings);
@@ -969,7 +964,7 @@ MenuLibGL.prototype.handleCubemapTexture = function(gl, texture, side, image, fl
 MenuLibGL.prototype.initShaders = function() {
 
 	// default shaders
-	this.addProgram("default", variable.theme_url + "/menu/res/shaders/default.vert", variable.theme_url + "/menu/res/shaders/default.frag",
+	this.addProgram("default", variable.theme_url + "/shaders/default.vert", variable.theme_url + "/shaders/default.frag",
 					// attributes
 					["aPosition", "aNormal", "aTexCoord"],
 					// uniforms
@@ -983,11 +978,11 @@ MenuLibGL.prototype.initShaders = function() {
  * @Override
  */
 MenuLibGL.prototype.initTextures = function() {
-	this.addTexture("earth", new Uint8Array([50, 50, 50, 225]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/menu/res/images/earth.jpg");
-	this.addTexture("normals", new Uint8Array([127, 127, 255, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/menu/res/images/sphere-normals.jpg");
-	this.addTexture("lenna", new Uint8Array([127, 127, 255, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/menu/res/images/lenna.png");
-	this.addTexture("fft", new Uint8Array([127, 127, 255, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/menu/res/images/fft_shift.png");
-	this.setCubeMap("reflection", "default", [127,127,127,255], variable.theme_url + "/menu/res/images/cubemap", 256, ".jpeg");
+	this.addTexture("earth", new Uint8Array([50, 50, 50, 225]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/images/earth.jpg");
+	this.addTexture("normals", new Uint8Array([127, 127, 255, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/images/sphere-normals.jpg");
+	this.addTexture("lenna", new Uint8Array([127, 127, 255, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/images/lenna.png");
+	this.addTexture("fft", new Uint8Array([127, 127, 255, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/images/fft_shift.png");
+	this.setCubeMap("reflection", "default", [127,127,127,255], variable.theme_url + "/images/cubemap", 256, ".jpeg");
 }
 
 
@@ -1031,7 +1026,7 @@ MenuLibGL.prototype.setScene = function() {
 	mat4.translate(trans, trans, [0, 2, 0]);
 	mat4.scale(trans, trans, [3, 3, 3]);
 	mat4.rotate(trans, trans, degToRad(-10), [1, 0, 0]);
-	this.addModelJSON("ltb", variable.theme_url + "/menu/res/objects/ltb.json",
+	this.addModelJSON("ltb", variable.theme_url + "/objects/ltb.json",
 						trans, [0.8, 0.8, 0.8, 1.0], [0.0, 0.0, 0.0, 0.0], "");
 }
 
@@ -1045,13 +1040,13 @@ function main() {
 	var canvas = document.getElementById("canvas");
 	var canvas_div = document.getElementById("canvas_div");
 
-	var spaceLib = new MenuLibGL();
-	spaceLib.init(canvas, canvas_div, [] );
+	var menuLib = new MenuLibGL();
+	menuLib.init(canvas, canvas_div, [] );
 
-	spaceLib.gl.clearColor(0, 0, 0, 0);
-	spaceLib.addOrbitCam(-18.0, 0.0, 30.0, [0, 0, 0], 40.0, 1.0, 0.1, 100.0);
+	menuLib.gl.clearColor(0, 0, 0, 0);
+	menuLib.addOrbitCam(-18.0, 0.0, 30.0, [0, 0, 0], 40.0, 1.0, 0.1, 100.0);
 
-	spaceLib.start();
+	menuLib.start();
 }
 
 

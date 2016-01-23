@@ -136,7 +136,7 @@ void main()
 	force *= uGravityConstant * currPosition.w;
 
 	// v = v + a * t = v + (f / m) * t
-	velocity += force / currPosition.w * uDeltaTime;
+	velocity += (force / currPosition.w) * uDeltaTime;
 
 	// p = p + v * t
 	currPosition.xyz += velocity * uDeltaTime;

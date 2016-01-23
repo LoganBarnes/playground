@@ -1,7 +1,7 @@
 
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
 var variable = [];
-variable.theme_url = ".";
+variable.theme_url = "./res";
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
 
 /*
@@ -52,7 +52,7 @@ RaySubLibGL.prototype.render = function() {
 	this.brightness = this.HTMLElements["brightness"].value;
 	this.useShadows = this.HTMLElements["shadows"].checked;
 	if (this.HTMLElements["reflections"].checked) {
-		// set reflectionIterations
+		this.reflectionIterations = this.HTMLElements["iterations"].value;
 	} else {
 		this.reflectionIterations = 0;
 	}
@@ -108,12 +108,13 @@ RaySubLibGL.prototype.resizeCanvas = function() {
 RaySubLibGL.prototype.initShaders = function() {
 
 	// default shaders
-	this.addProgram("default", variable.theme_url + "/res/shaders/fullquad.vert", variable.theme_url + "/res/shaders/render-ray.frag",
+	this.addProgram("default", variable.theme_url + "/shaders/fullquad.vert", variable.theme_url + "/shaders/render-ray.frag",
 					// attributes
 					["aPosition", "aNormal", "aTexCoord"],
 					// uniforms
 					["uScaleViewInv", "uEyePos", "uViewport", "uNumShapes",
-					 "uLightLocation", "uAntialiasing", "uUseShadows", "uBrightness"]);
+					 "uLightLocation", "uAntialiasing", "uUseShadows", "uBrightness",
+					 "uIterations"]);
 }
 
 /*
@@ -134,7 +135,7 @@ RaySubLibGL.prototype.setScene = function() {
 	// add primitives
 	var trans = mat4.create();
 
-	this.addPrimitive(ShapeType.SPHERE, trans, [1.0, 1.0, 1.0, 1.0], [64.0, 1.0, 0.0, 0.1], "");
+	this.addPrimitive(ShapeType.SPHERE, trans, [0.0, 0.0, 1.0, 1.0], [64.0, 1.0, 0.0, 0.1], "");
 
 	mat4.identity(trans);
 	mat4.translate(trans, trans, [0, -7, 0]);
@@ -144,22 +145,22 @@ RaySubLibGL.prototype.setScene = function() {
 
 	mat4.identity(trans);
 	mat4.translate(trans, trans, [-5, 0, 0]);
-	this.addPrimitive(ShapeType.CONE, trans, [1.0, 1.0, 1.0, 1.0], [64.0, 1.0, 0.0, 0.1], "");
+	this.addPrimitive(ShapeType.CONE, trans, [1.0, 1.0, 0.0, 1.0], [64.0, 1.0, 0.0, 0.1], "");
 
 	mat4.identity(trans);
 	mat4.rotate(trans, trans, degToRad(90), [0, 0, 1]);
 	mat4.translate(trans, trans, [-5, 0, 0]);
-	this.addPrimitive(ShapeType.CYLINDER, trans, [1.0, 1.0, 1.0, 1.0], [64.0, 1.0, 0.0, 0.1], "");
+	this.addPrimitive(ShapeType.CYLINDER, trans, [1.0, 0.0, 1.0, 1.0], [64.0, 1.0, 0.0, 0.1], "");
 
 	mat4.identity(trans);
 	mat4.rotate(trans, trans, degToRad(180), [0, 0, 1]);
 	mat4.translate(trans, trans, [-5, 0, 0]);
-	this.addPrimitive(ShapeType.HOLLOW_CYLINDER, trans, [1.0, 1.0, 1.0, 1.0], [64.0, 1.0, 0.0, 0.1], "");
+	this.addPrimitive(ShapeType.HOLLOW_CYLINDER, trans, [1.0, 0.0, 0.0, 1.0], [64.0, 1.0, 0.0, 0.1], "");
 	
 	mat4.identity(trans);
 	mat4.rotate(trans, trans, degToRad(270), [0, 0, 1]);
 	mat4.translate(trans, trans, [-5, 0, 0]);
-	this.addPrimitive(ShapeType.CUBE, trans, [1.0, 1.0, 1.0, 1.0], [128.0, 1.0, 0.0, 0.1], "");
+	this.addPrimitive(ShapeType.CUBE, trans, [0.0, 1.0, 1.0, 1.0], [128.0, 1.0, 0.0, 0.1], "");
 
 }
 
@@ -178,6 +179,15 @@ function main() {
 	rayLibGL.addHTMLElement("antialiasing");
 	rayLibGL.addHTMLElement("shadows");
 	rayLibGL.addHTMLElement("reflections");
+	rayLibGL.addLinkedInput("iterations", "iterationsText");
+
+	rayLibGL.HTMLElements["reflections"].onclick = function() {
+		if (rayLibGL.HTMLElements["reflections"].checked) {
+			document.getElementById("reflection_div").className = "";
+		} else {
+			document.getElementById("reflection_div").className = "dull";
+		}
+	}
 
 	rayLibGL.start();
 }

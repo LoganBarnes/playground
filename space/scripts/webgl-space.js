@@ -3,7 +3,7 @@ var internet = true;
 
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
 var variable = [];
-variable.theme_url = ".";
+variable.theme_url = "./res";
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
 
 var BoostType =  Object.freeze({
@@ -30,9 +30,6 @@ var SpaceShip = function(spaceLib) {
 	this.model = mat4.create();
 	this.invModel = mat4.create();
 
-	// mat4.rotate(this.rot, this.rot, degToRad(90), [1, 0, 0]);
-	// mat4.invert(this.invRot, this.rot);
-
 	this.goalVel = vec3.create();
 	this.goalAngVel = vec3.create();
 
@@ -41,9 +38,9 @@ var SpaceShip = function(spaceLib) {
 	this.right = [1, 0, 0, 0];
 
 	// ellipsoid scale
-	var radX = 5;
-	var radY = 0.7;
-	var radZ = 5;
+	var radX = 0.005;
+	var radY = 0.0007;
+	var radZ = 0.005;
 
 	// physics vars
 	this.mass = 500;
@@ -81,64 +78,64 @@ var SpaceShip = function(spaceLib) {
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 
 	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [0, 0.5, -1.5]);
-	mat4.scale(transMat, transMat, [1.3, 0.85, 2]);
+	mat4.translate(transMat, transMat, [0, 0.0005, -0.0015]);
+	mat4.scale(transMat, transMat, [0.0013, 0.00085, 0.002]);
 	prim = spaceLib.addPrimitive(ShapeType.SPHERE, transMat, [0.7, 0.7, 0.7, 1.0], [64.0, 0.0, 0.0, 0.0], "");
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 
 	// add thrusters
 	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [3, -0.5, 3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
+	mat4.translate(transMat, transMat, [0.003, -0.0005, 0.003]);
+	mat4.scale(transMat, transMat, [0.00015, 0.0004, 0.00015]);
 	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 	this.boosters[BoostType.STARBOARD_AFT_LIFT] = this.prims[this.prims.length - 1];
 
 	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [3, 0.5, 3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
+	mat4.translate(transMat, transMat, [0.003, 0.0005, 0.003]);
+	mat4.scale(transMat, transMat, [0.00015, 0.0004, 0.00015]);
 	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 	this.boosters[-BoostType.STARBOARD_AFT_LIFT] = this.prims[this.prims.length - 1];
 
 	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [-3, -0.5, 3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
+	mat4.translate(transMat, transMat, [-0.003, -0.0005, 0.003]);
+	mat4.scale(transMat, transMat, [0.00015, 0.0004, 0.00015]);
 	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 	this.boosters[BoostType.PORT_AFT_LIFT] = this.prims[this.prims.length - 1];
 
 	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [-3, 0.5, 3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
+	mat4.translate(transMat, transMat, [-0.003, 0.0005, 0.003]);
+	mat4.scale(transMat, transMat, [0.00015, 0.0004, 0.00015]);
 	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 	this.boosters[-BoostType.PORT_AFT_LIFT] = this.prims[this.prims.length - 1];
 
 	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [3, -0.5, -3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
+	mat4.translate(transMat, transMat, [0.003, -0.0005, -0.003]);
+	mat4.scale(transMat, transMat, [0.00015, 0.0004, 0.00015]);
 	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 	this.boosters[BoostType.STARBOARD_BOW_LIFT] = this.prims[this.prims.length - 1];
 
 	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [3, 0.5, -3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
+	mat4.translate(transMat, transMat, [0.003, 0.0005, -0.003]);
+	mat4.scale(transMat, transMat, [0.00015, 0.0004, 0.00015]);
 	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 	this.boosters[-BoostType.STARBOARD_BOW_LIFT] = this.prims[this.prims.length - 1];
 
 	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [-3, -0.5, -3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
+	mat4.translate(transMat, transMat, [-0.003, -0.0005, -0.003]);
+	mat4.scale(transMat, transMat, [0.00015, 0.0004, 0.00015]);
 	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 	this.boosters[BoostType.PORT_BOW_LIFT] = this.prims[this.prims.length - 1];
 
 	mat4.identity(transMat);
-	mat4.translate(transMat, transMat, [-3, 0.5, -3]);
-	mat4.scale(transMat, transMat, [0.15, 0.4, 0.15]);
+	mat4.translate(transMat, transMat, [-0.003, 0.0005, -0.003]);
+	mat4.scale(transMat, transMat, [0.00015, 0.0004, 0.00015]);
 	prim = spaceLib.createPrimitive(ShapeType.CYLINDER, transMat, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 1.0], "");
 	this.prims.push(new this.ShipPrim(prim, mat4.clone(transMat)));
 	this.boosters[-BoostType.PORT_BOW_LIFT] = this.prims[this.prims.length - 1];
@@ -161,10 +158,8 @@ SpaceShip.prototype.getInvModel = function() {
 	return this.invModel;
 }
 
-SpaceShip.prototype.setModel = function(model) {
-	this.model = mat4.clone(model);
-	mat4.invert(this.invModel, this.model);
-	this.updateModel();
+SpaceShip.prototype.setPos = function(pos) {
+	this.pos = vec3.clone(pos);
 }
 
 SpaceShip.prototype.getPos = function() {
@@ -177,36 +172,36 @@ SpaceShip.prototype.setGoalVelocity = function(goalVel) {
 	this.goalVel = vec3.clone(goalVel);
 }
 
-SpaceShip.prototype.setGoalAngVelocity = function(goalAngVel) {
-	this.goalAngVel = vec3.clone(goalAngVel);
+SpaceShip.prototype.setGoalAngVelocityDeg = function(goalAngVel) {
+	this.goalAngVel = [degToRad(goalAngVel[0]), degToRad(goalAngVel[1]), degToRad(goalAngVel[2])];
 }
 
 SpaceShip.prototype.applyBoost = function(type, strength) {
 
 	// should update which bosters get rendered too
-	strength = Math.min(strength, 10000);
-	strength = Math.max(strength, -10000);
+	strength = Math.min(strength, 10);
+	strength = Math.max(strength, -10);
 	switch(type) {
 		case BoostType.STARBOARD_THRUST:
-			this.applyForce([0, 0, strength], [5, 0, 0]);
+			this.applyForce([0, 0, strength], [0.005, 0, 0]);
 			break;
 		case BoostType.PORT_THRUST:
-			this.applyForce([0, 0, strength], [-5, 0, 0]);
+			this.applyForce([0, 0, strength], [-0.005, 0, 0]);
 			break;
 		case BoostType.STARBOARD_BOW_LIFT:
-			this.applyForce([0, strength, 0], [4, 0, -4]);
+			this.applyForce([0, strength, 0], [0.004, 0, -0.004]);
 			break;
 		case BoostType.STARBOARD_AFT_LIFT:
-			this.applyForce([0, strength, 0], [4, 0, 4]);
+			this.applyForce([0, strength, 0], [0.004, 0, 0.004]);
 			break;
 		case BoostType.PORT_BOW_LIFT:
-			this.applyForce([0, strength, 0], [-4, 0, -4]);
+			this.applyForce([0, strength, 0], [-0.004, 0, -0.004]);
 			break;
 		case BoostType.PORT_AFT_LIFT:
-			this.applyForce([0, strength, 0], [-4, 0, 4]);
+			this.applyForce([0, strength, 0], [-0.004, 0, 0.004]);
 			break;
 		case BoostType.STRAFE:
-			this.applyForce([strength, 0, 0], [1, 0, 0]);
+			this.applyForce([strength, 0, 0], [0.001, 0, 0]);
 			break;
 		default:
 			break;
@@ -214,10 +209,6 @@ SpaceShip.prototype.applyBoost = function(type, strength) {
 }
 
 SpaceShip.prototype.applyForce = function(force, point) {
-
-	// rotate vectors
-	// vec3.transformMat4(force, force, this.rot);
-	// vec3.transformMat4(point, point, this.rot);
 
 	// torque
 	var temp = vec3.create();
@@ -228,23 +219,26 @@ SpaceShip.prototype.applyForce = function(force, point) {
 	vec3.add(this.force, this.force, force);
 }
 
-var k = 0.1;
-SpaceShip.prototype.determineBoost = function(secs) {
+SpaceShip.prototype.determineBoost = function(secs, precisionMode) {
 
 	var accel = vec3.create();
 	var vel = vec3.create();
 	var angVel = vec3.create();
 
-	// k = 0.5;
+	var scale = 1.0;
+	if (precisionMode) {
+		scale = 0.1;
+	}
 
 	//////////////// LINEAR ////////////////
-	if (Math.abs(this.vel[0]) < 0.001) {
+	var k = 0.5 * scale;
+	if (Math.abs(this.vel[0]) < 0.000001) {
 		this.vel[0] = 0.0;
 	}
-	if (Math.abs(this.vel[1]) < 0.001) {
+	if (Math.abs(this.vel[1]) < 0.000001) {
 		this.vel[1] = 0.0;
 	}
-	if (Math.abs(this.vel[2]) < 0.001) {
+	if (Math.abs(this.vel[2]) < 0.000001) {
 		this.vel[2] = 0.0;
 	}
 	vec3.transformMat4(vel, this.vel, this.invRot);
@@ -266,6 +260,7 @@ SpaceShip.prototype.determineBoost = function(secs) {
 	this.applyBoost(BoostType.STRAFE, accel[0]);
 
 	//////////////// ANGULAR ////////////////
+	k = 5.0 * scale;
 	if (Math.abs(this.angVel[0]) < 0.001) {
 		this.angVel[0] = 0.0;
 	}
@@ -279,36 +274,30 @@ SpaceShip.prototype.determineBoost = function(secs) {
 
 	vec3.subtract(accel, this.goalAngVel, angVel);
 
-	// console.log("vel: " + vec3.str(angVel));
-	// console.log("goal: " + vec3.str(this.goalAngVel));
-	// console.log("accel: " + vec3.str(accel));
-
 	vec3.transformMat3(accel, accel, this.I);
-	// console.log("torque: " + vec3.str(accel));
 	vec3.scale(accel, accel, k / secs);
-	// console.log("scale: " + vec3.str(accel));
 
 	// pitch
-	this.applyBoost(BoostType.STARBOARD_BOW_LIFT, accel[0] * 0.25);
-	this.applyBoost(BoostType.PORT_BOW_LIFT, accel[0] * 0.25);
-	this.applyBoost(BoostType.STARBOARD_AFT_LIFT, -accel[0] * 0.25);
-	this.applyBoost(BoostType.PORT_AFT_LIFT, -accel[0] * 0.25);
+	this.applyBoost(BoostType.STARBOARD_BOW_LIFT, accel[0] * 1.0);
+	this.applyBoost(BoostType.PORT_BOW_LIFT, accel[0] * 1.0);
+	this.applyBoost(BoostType.STARBOARD_AFT_LIFT, -accel[0] * 1.0);
+	this.applyBoost(BoostType.PORT_AFT_LIFT, -accel[0] * 1.0);
 
 	// yaw
-	this.applyBoost(BoostType.STARBOARD_THRUST, -accel[1] * 0.25);
-	this.applyBoost(BoostType.PORT_THRUST, accel[1] * 0.25);
+	this.applyBoost(BoostType.STARBOARD_THRUST, -accel[1] * 1.0);
+	this.applyBoost(BoostType.PORT_THRUST, accel[1] * 1.0);
 
 	// roll
-	this.applyBoost(BoostType.PORT_BOW_LIFT, -accel[2] * 0.25);
-	this.applyBoost(BoostType.PORT_AFT_LIFT, -accel[2] * 0.25);
-	this.applyBoost(BoostType.STARBOARD_BOW_LIFT, accel[2] * 0.25);
-	this.applyBoost(BoostType.STARBOARD_AFT_LIFT, accel[2] * 0.25);
+	this.applyBoost(BoostType.PORT_BOW_LIFT, -accel[2] * 1.0);
+	this.applyBoost(BoostType.PORT_AFT_LIFT, -accel[2] * 1.0);
+	this.applyBoost(BoostType.STARBOARD_BOW_LIFT, accel[2] * 1.0);
+	this.applyBoost(BoostType.STARBOARD_AFT_LIFT, accel[2] * 1.0);
 }
 
-SpaceShip.prototype.update = function(secs, useGoalVel, spaceLib, program) {
+SpaceShip.prototype.update = function(secs, useGoalVel, precisionMode) {
 
 	if (useGoalVel) {
-		this.determineBoost(secs);
+		this.determineBoost(secs, precisionMode);
 	}
 
 	var accel = vec3.create();
@@ -346,7 +335,8 @@ SpaceShip.prototype.update = function(secs, useGoalVel, spaceLib, program) {
 
 	// update trans with angular position
 	var trans = mat4.create();
-	mat4.rotate(trans, trans, degToRad(angle), axis);
+	mat4.rotate(trans, trans, angle, axis);
+	// mat4.rotate(trans, trans, degToRad(angle), axis);
 	mat4.multiply(this.rot, trans, this.rot);
 	mat4.invert(this.invRot, this.rot);
 
@@ -361,23 +351,23 @@ SpaceShip.prototype.update = function(secs, useGoalVel, spaceLib, program) {
 	vec3.transformMat4(relTorque, this.torque, this.invRot);
 
 	var toDraw = [];
-	if (this.torque[0] < -0.1) {
+	if (this.torque[0] < -0.0001) {
 		toDraw.push(this.boosters[BoostType.STARBOARD_AFT_LIFT].prim);
 		toDraw.push(this.boosters[BoostType.PORT_AFT_LIFT].prim);
 		toDraw.push(this.boosters[-BoostType.STARBOARD_BOW_LIFT].prim);
 		toDraw.push(this.boosters[-BoostType.PORT_BOW_LIFT].prim);
-	} else if (this.torque[0] > 0.1) {
+	} else if (this.torque[0] > 0.0001) {
 		toDraw.push(this.boosters[-BoostType.STARBOARD_AFT_LIFT].prim);
 		toDraw.push(this.boosters[-BoostType.PORT_AFT_LIFT].prim);
 		toDraw.push(this.boosters[BoostType.STARBOARD_BOW_LIFT].prim);
 		toDraw.push(this.boosters[BoostType.PORT_BOW_LIFT].prim);
 	}
-	if (this.torque[2] < -0.1) {
+	if (this.torque[2] < -0.0001) {
 		toDraw.push(this.boosters[-BoostType.STARBOARD_AFT_LIFT].prim);
 		toDraw.push(this.boosters[BoostType.PORT_AFT_LIFT].prim);
 		toDraw.push(this.boosters[-BoostType.STARBOARD_BOW_LIFT].prim);
 		toDraw.push(this.boosters[BoostType.PORT_BOW_LIFT].prim);
-	} else if (this.torque[2] > 0.1) {
+	} else if (this.torque[2] > 0.0001) {
 		toDraw.push(this.boosters[BoostType.STARBOARD_AFT_LIFT].prim);
 		toDraw.push(this.boosters[-BoostType.PORT_AFT_LIFT].prim);
 		toDraw.push(this.boosters[BoostType.STARBOARD_BOW_LIFT].prim);
@@ -389,32 +379,32 @@ SpaceShip.prototype.update = function(secs, useGoalVel, spaceLib, program) {
 	this.force = [0, 0, 0];
 	this.torque = [0, 0, 0];
 
-	this.printInfo(!useGoalVel);
+	this.printInfo(!useGoalVel, precisionMode);
 
 	return toDraw;
 }
 
-SpaceShip.prototype.printInfo = function(isManual) {
+SpaceShip.prototype.printInfo = function(isManual, precisionMode) {
 
 	var vel = vec3.create();
 	var angVel = vec3.create();
 	vec3.transformMat4(vel, this.vel, this.invRot);
+	vec3.scale(vel, vel, 1000); // km to meters
 	vec3.transformMat4(angVel, this.angVel, this.invRot);
 
-	var str =   "<p> Linear Velocity: " +
-				vel[0].toFixed(3) + ", " +
-				vel[1].toFixed(3) + ", " +
-				vel[2].toFixed(3) + ", " +
-				"<br/> Pitch Velocity: " + angVel[0].toFixed(3) + ", " +
-				"<br/> Yaw Velocity: " + angVel[1].toFixed(3) + ", " +
-				"<br/> Roll Velocity: " + angVel[2].toFixed(3);// + ", " +
-				// "<br/> Angular Velocity: " +
-				// this.angVel[0].toFixed(3) + ", " +
-				// this.angVel[1].toFixed(3) + ", " +
-				// this.angVel[2].toFixed(3) + ", ";
+	var str =   "<p> Linear Velocity (m/s): " +
+				vel[0].toFixed(1) + ", " +
+				vel[1].toFixed(1) + ", " +
+				(-vel[2]).toFixed(1) +
+				"<br/> Pitch Velocity (rad/s): " + angVel[0].toFixed(2) +
+				"<br/> Yaw Velocity (rad/s): " + angVel[1].toFixed(2) +
+				"<br/> Roll Velocity (rad/s): " + angVel[2].toFixed(2);
 
 	if (isManual) {
 		str += "<br/><span style='color: red'>MANUAL CONTROLS</span>"
+	}
+	if (precisionMode) {
+		str += "<br/><span style='color: lightgray'>PRECISION MODE</span>"
 	}
 	
 	str += "</p>";
@@ -462,6 +452,9 @@ SpaceShip.prototype.printInfo = function(isManual) {
 		this.controller.connect();
  	}
 
+ 	this.terrainQuad = null;
+ 	this.terrainPrim = null;
+
  	this.spaceShip = null;
  	this.manualControls = false;
 
@@ -480,12 +473,32 @@ SpaceShip.prototype.printInfo = function(isManual) {
 	this.depthPVMMatrix = mat4.create();
 	this.biasMatrix = mat4.create();
 	this.depthBiasPVMMatrix = mat4.create();
+
+	this.precisionMode = false;
  };
 
 // make SpaceLibGL a subclass
 SpaceLibGL.prototype = Object.create(LibGL.prototype);
 // Set the "constructor" property to refer to SpaceLibGL
 SpaceLibGL.prototype.constructor = SpaceLibGL;
+
+/*
+ * Loads all primitive shape classes
+ * @Override
+ */
+SpaceLibGL.prototype.initShapes = function() {
+	this.quadXY = new QuadXY(50, 50, 1.0);
+	this.quadXZ = new QuadXZ(50, 50, 1.0);
+	this.sphere = new Sphere(50, 50, 1.0);
+	this.cylinder = new Cylinder(50, 50, 1.0, 1.0);
+	this.terrainQuad = new QuadXZ(200, 200, 2.0);
+
+	this.quadXY.createVBO(this.gl, true, true);
+	this.quadXZ.createVBO(this.gl, true, true);
+	this.sphere.createVBO(this.gl, true, true);
+	this.cylinder.createVBO(this.gl, true, true);
+	this.terrainQuad.createVBO(this.gl, true, true);
+}
 
 
 ////////////////////////////////////////////////////////////////////
@@ -611,8 +624,6 @@ SpaceLibGL.prototype.renderCubeMap = function(name) {
  8 8888 8            `Yo 8 8888            `Y88888P'         8 8888       
 */
 
-// var tempGV = [0, 0, 0];
-// var tempAngGV = [0, 0, 0];
 /*
  * Gets called on every frame and updates settings
  * based on currently pressed keys.
@@ -662,7 +673,7 @@ SpaceLibGL.prototype.handleInput = function() {
 				leftForce[1] *= leftForce[1] * leftForce[1];
 				leftForce[2] *= leftForce[2] * leftForce[2];
 
-				this.spaceShip.setGoalAngVelocity(leftForce);
+				this.spaceShip.setGoalAngVelocityDeg(leftForce);
 
 			}
 
@@ -720,11 +731,15 @@ SpaceLibGL.prototype.handleInput = function() {
 
 	///////////////////////// KEY STUFF //////////////////////////
 
+		var scale = 1.0;
+		// if (this.precisionMode) {
+		// 	scale = 0.1;
+		// }
+
 		if (!this.manualControls) {
 
-			if (this.currentlyPressedKeys)
-			var goalForce = 100;
-			var goalForceAng = 75;
+			var goalForce = 0.1 * scale; // km / s
+			var goalForceAng = 100 * scale; // degrees / second
 
 			var tempAngGV = [0, 0, 0];
 			var tempGV = [0, 0, 0];
@@ -748,7 +763,7 @@ SpaceLibGL.prototype.handleInput = function() {
 			if (this.currentlyPressedKeys[59] || this.currentlyPressedKeys[186]) { // ;
 				tempAngGV[2] -= goalForceAng;
 			}
-			this.spaceShip.setGoalAngVelocity(tempAngGV);
+			this.spaceShip.setGoalAngVelocityDeg(tempAngGV);
 
 			// WASDQE
 			if (this.currentlyPressedKeys[87]) { // W
@@ -782,74 +797,73 @@ SpaceLibGL.prototype.handleInput = function() {
 
 		} else {
 
+			if (this.precisionMode) {
+				scale = 0.1;
+			}
 			///////////////////////// ORIG KEY STUFF //////////////////////////
 
 			// OKL;IP
 			if (this.currentlyPressedKeys[73]) { // I
-				this.spaceShip.applyForce([0, 0, 5000], [-5, 0, 0]);
-				this.spaceShip.applyForce([0, 0, -5000], [5, 0, 0]);
+				this.spaceShip.applyForce([0, 0, 0.25 * scale], [-0.005, 0, 0]);
+				this.spaceShip.applyForce([0, 0, -0.25 * scale], [0.005, 0, 0]);
 			}
 			if (this.currentlyPressedKeys[80]) { // P
-				this.spaceShip.applyForce([0, 0, 5000], [5, 0, 0]);
-				this.spaceShip.applyForce([0, 0, -5000], [-5, 0, 0]);
+				this.spaceShip.applyForce([0, 0, 0.25 * scale], [0.005, 0, 0]);
+				this.spaceShip.applyForce([0, 0, -0.25 * scale], [-0.005, 0, 0]);
 			}
 			if (this.currentlyPressedKeys[79]) { // O
-				this.spaceShip.applyForce([0, 5000, 0], [4, 0, 4]);
-				this.spaceShip.applyForce([0, 5000, 0], [-4, 0, 4]);
-				this.spaceShip.applyForce([0, -5000, 0], [4, 0, -4]);
-				this.spaceShip.applyForce([0, -5000, 0], [-4, 0, -4]);
+				this.spaceShip.applyForce([0, 0.2 * scale, 0], [0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, 0.2 * scale, 0], [-0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, -0.2 * scale, 0], [0.004, 0, -0.004]);
+				this.spaceShip.applyForce([0, -0.2 * scale, 0], [-0.004, 0, -0.004]);
 			}
 			if (this.currentlyPressedKeys[76]) { // L
-				this.spaceShip.applyForce([0, 5000, 0], [4, 0, -4]);
-				this.spaceShip.applyForce([0, 5000, 0], [-4, 0, -4]);
-				this.spaceShip.applyForce([0, -5000, 0], [4, 0, 4]);
-				this.spaceShip.applyForce([0, -5000, 0], [-4, 0, 4]);
+				this.spaceShip.applyForce([0, 0.5 * scale, 0], [0.004, 0, -0.004]);
+				this.spaceShip.applyForce([0, 0.5 * scale, 0], [-0.004, 0, -0.004]);
+				this.spaceShip.applyForce([0, -0.5 * scale, 0], [0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, -0.5 * scale, 0], [-0.004, 0, 0.004]);
 			}
 			if (this.currentlyPressedKeys[75]) { // K
-				this.spaceShip.applyForce([0, 5000, 0], [4, 0, 4]);
-				this.spaceShip.applyForce([0, 5000, 0], [4, 0, -4]);
-				this.spaceShip.applyForce([0, -5000, 0], [-4, 0, 4]);
-				this.spaceShip.applyForce([0, -5000, 0], [-4, 0, -4]);
-				// this.spaceShip.applyForce([0, 5000, 0], [5, 0, 0]);
-				// this.spaceShip.applyForce([0, -5000, 0], [-5, 0, 0]);
+				this.spaceShip.applyForce([0, 0.4 * scale, 0], [0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, 0.4 * scale, 0], [0.004, 0, -0.004]);
+				this.spaceShip.applyForce([0, -0.4 * scale, 0], [-0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, -0.4 * scale, 0], [-0.004, 0, -0.004]);
 			}
 			if (this.currentlyPressedKeys[59] || this.currentlyPressedKeys[186]) { // ;
-				this.spaceShip.applyForce([0, 5000, 0], [-4, 0, 4]);
-				this.spaceShip.applyForce([0, 5000, 0], [-4, 0, -4]);
-				this.spaceShip.applyForce([0, -5000, 0], [4, 0, 4]);
-				this.spaceShip.applyForce([0, -5000, 0], [4, 0, -4]);
-				// this.spaceShip.applyForce([0, 5000, 0], [-5, 0, 0]);
-				// this.spaceShip.applyForce([0, -5000, 0], [5, 0, 0]);
+				this.spaceShip.applyForce([0, 0.4 * scale, 0], [-0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, 0.4 * scale, 0], [-0.004, 0, -0.004]);
+				this.spaceShip.applyForce([0, -0.4 * scale, 0], [0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, -0.4 * scale, 0], [0.004, 0, -0.004]);
 			}
 			// WASDQE
 			if (this.currentlyPressedKeys[87]) { // W
-				this.spaceShip.applyForce([0, 0, -5000], [5, 0, 0]);
-				this.spaceShip.applyForce([0, 0, -5000], [-5, 0, 0]);
+				this.spaceShip.applyForce([0, 0, -5 * scale], [0.005, 0, 0]);
+				this.spaceShip.applyForce([0, 0, -5 * scale], [-0.005, 0, 0]);
 			}
 			if (this.currentlyPressedKeys[65]) { // A
-				this.spaceShip.applyForce([-5000, 0, 0], [1, 0, 0]);
+				this.spaceShip.applyForce([-5 * scale, 0, 0], [1, 0, 0]);
 				
 			}
 			if (this.currentlyPressedKeys[83]) { // S
-				this.spaceShip.applyForce([0, 0, 5000], [5, 0, 0]);
-				this.spaceShip.applyForce([0, 0, 5000], [-5, 0, 0]);
+				this.spaceShip.applyForce([0, 0, 5 * scale], [0.005, 0, 0]);
+				this.spaceShip.applyForce([0, 0, 5 * scale], [-0.005, 0, 0]);
 				
 			}
 			if (this.currentlyPressedKeys[68]) { // D
-				this.spaceShip.applyForce([5000, 0, 0], [1, 0, 0]);
+				this.spaceShip.applyForce([5 * scale, 0, 0], [0.001, 0, 0]);
 				
 			}
 			if (this.currentlyPressedKeys[81]) { // Q
-				this.spaceShip.applyForce([0, -2500, 0], [4, 0, 4]);
-				this.spaceShip.applyForce([0, -2500, 0], [-4, 0, 4]);
-				this.spaceShip.applyForce([0, -2500, 0], [4, 0, -4]);
-				this.spaceShip.applyForce([0, -2500, 0], [-4, 0, -4]);
+				this.spaceShip.applyForce([0, -2.5 * scale, 0], [0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, -2.5 * scale, 0], [-0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, -2.5 * scale, 0], [0.004, 0, -0.004]);
+				this.spaceShip.applyForce([0, -2.5 * scale, 0], [-0.004, 0, -0.004]);
 			}
 			if (this.currentlyPressedKeys[69]) { // E
-				this.spaceShip.applyForce([0, 2500, 0], [4, 0, 4]);
-				this.spaceShip.applyForce([0, 2500, 0], [-4, 0, 4]);
-				this.spaceShip.applyForce([0, 2500, 0], [4, 0, -4]);
-				this.spaceShip.applyForce([0, 2500, 0], [-4, 0, -4]);
+				this.spaceShip.applyForce([0, 2.5 * scale, 0], [0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, 2.5 * scale, 0], [-0.004, 0, 0.004]);
+				this.spaceShip.applyForce([0, 2.5 * scale, 0], [0.004, 0, -0.004]);
+				this.spaceShip.applyForce([0, 2.5 * scale, 0], [-0.004, 0, -0.004]);
 			}
 			// space bar
 			if (this.currentlyPressedKeys[32]) {}
@@ -864,7 +878,7 @@ SpaceLibGL.prototype.handleInput = function() {
 
 	if (this.currentlyPressedKeys[90]) { // Z
 		this.spaceShip.setGoalVelocity([0, 0, 0]);
-		this.spaceShip.setGoalAngVelocity([0, 0, 0]);
+		this.spaceShip.setGoalAngVelocityDeg([0, 0, 0]);
 	}
 }
 
@@ -884,15 +898,18 @@ SpaceLibGL.prototype.handleKeyUp = function(keyEvent) {
 		case 32: // space
 			this.spaceDown = false;
 			break;
-		case 77: // M
-			this.manualControls = !this.manualControls;
-			break;
 		case 67: // C
 			this.spaceShip.vel = [0, 0, 0];
 			this.spaceShip.angVel = [0, 0, 0];
 			break;
+		case 77: // M
+			this.manualControls = !this.manualControls;
+			break;
+		case 82: // R
+			this.precisionMode = !this.precisionMode;
+			break;
 		default:
-			// console.log(keyEvent.keyCode);
+			console.log(keyEvent.keyCode);
 			break;
 	}
 }
@@ -926,7 +943,7 @@ SpaceLibGL.prototype.setCameraAndLightUniforms = function(program) {
 
 	var numLights = this.lights.length;
 	if (numLights < this.MAX_LIGHTS) {
-		this.gl.uniform1i(this.gl.getUniformLocation(this.getProgram("default"), "uLights[" + numLights + "].type"), -1);
+		this.gl.uniform1i(this.gl.getUniformLocation(this.getProgram(program), "uLights[" + numLights + "].type"), -1);
 	}
 	
 	this.gl.activeTexture(this.gl.TEXTURE1);
@@ -942,9 +959,21 @@ SpaceLibGL.prototype.setCameraAndLightUniforms = function(program) {
 SpaceLibGL.prototype.setShapeUniforms = function(s, program, args) {
 	mat4.multiply(this.depthPVMMatrix, this.depthPVMatrix, s.trans);
 
-	if (args[0]) {
+	if (args[0] == "shadow") {
 		this.gl.uniformMatrix4fv(this.getUniform(program, "uDepthPVMMatrix"), false, this.depthPVMMatrix);
 	} else {
+		if (args[0] == "terrain") {
+			var before = mat4.create();
+			var pos = this.spaceShip.getPos();
+			mat4.translate(before, before, [pos[0], 0, pos[2]]);
+			this.gl.uniformMatrix4fv(this.getUniform(program, "uMBeforeMatrix"), false, before);
+
+			if (s.texture.length > 0) {
+				this.gl.activeTexture(this.gl.TEXTURE0);
+				this.gl.bindTexture(this.gl.TEXTURE_2D, this.getTexture(s.texture));
+				this.gl.uniform1i(this.getUniform(program, "uTexture"), 0);
+			}
+		}
 
 		this.gl.uniform4fv(this.getUniform(program, "uShapeSettings"), s.settings);
 		this.gl.uniform3f(this.getUniform(program, "uColor"), s.color[0], s.color[1], s.color[2]);
@@ -954,7 +983,7 @@ SpaceLibGL.prototype.setShapeUniforms = function(s, program, args) {
 
 		mat4.multiply(this.depthBiasPVMMatrix, this.biasMatrix, this.depthPVMMatrix);
 
-		this.gl.uniformMatrix4fv(this.getUniform("default", "uDepthBiasPVMMatrix"), false, this.depthBiasPVMMatrix);
+		this.gl.uniformMatrix4fv(this.getUniform(program, "uDepthBiasPVMMatrix"), false, this.depthBiasPVMMatrix);
 
 	}
 }
@@ -972,6 +1001,21 @@ SpaceLibGL.prototype.renderScene = function(program, additionalPrims) {
 	this.renderPrimitives(program, this.setShapeUniforms.bind(this), [], additionalPrims);
 	this.renderModels(program, this.setShapeUniforms.bind(this), []);
 	this.renderBuffers(program, this.setShapeUniforms.bind(this), []);
+}
+
+/*
+ *
+ */
+SpaceLibGL.prototype.renderTerrain = function(program) {
+	this.useProgram(program);
+	this.setCameraAndLightUniforms(program);
+	this.setLights(program, this.setLightUniforms.bind(this), [], false);
+	this.setShapeUniforms(this.terrainPrim, program, ["terrain"]);
+
+	this.terrainQuad.bindBuffer(this.gl, this.getAttribute(program, "aPosition"),
+										 this.getAttribute(program, "aNormal"),
+										 this.getAttribute(program, "aTexCoord"));
+	this.terrainQuad.render(this.gl);
 }
 
 
@@ -993,6 +1037,7 @@ SpaceLibGL.prototype.render = function(additionalPrims) {
 	// render the environment and shapes
 	this.renderCubeMap("cubemap");
 	this.renderScene("default", additionalPrims);
+	this.renderTerrain("terrain");
 }
 
 
@@ -1024,7 +1069,7 @@ SpaceLibGL.prototype.tick = function() {
 	this.lastTime = timeNow;
 
 	this.handleInput();
-	var boosters = this.spaceShip.update(deltaTime, !this.manualControls);
+	var boosters = this.spaceShip.update(deltaTime, !this.manualControls, this.precisionMode);
 	this.render(boosters);
 }
 
@@ -1067,27 +1112,36 @@ SpaceLibGL.prototype.onStartTick = function() {
 SpaceLibGL.prototype.initShaders = function() {
 
 	// shadow shaders
-	this.addProgram("shadowmap", "res/shaders/shadowmap.vert", "res/shaders/shadowmap.frag",
+	this.addProgram("shadowmap", variable.theme_url + "/shaders/shadowmap.vert", variable.theme_url + "/shaders/shadowmap.frag",
 					// attributes
 					["aPosition", "aNormal", "aTexCoord"],
 					// uniforms
 					["uDepthPVMMatrix"]);
 
 	// cubemap shaders
-	this.addProgram("cubemap", variable.theme_url + "/res/shaders/cubemap.vert", variable.theme_url + "/res/shaders/cubemap.frag",
+	this.addProgram("cubemap", variable.theme_url + "/shaders/cubemap.vert", variable.theme_url + "/shaders/cubemap.frag",
 					// attributes
 					["aPosition"],
 					// uniforms
 					["uPMatrix", "uVMatrix", "uEnvMap"]);
 
 	// default shaders
-	this.addProgram("default", variable.theme_url + "/res/shaders/default.vert", variable.theme_url + "/res/shaders/default.frag",
+	this.addProgram("default", variable.theme_url + "/shaders/default.vert", variable.theme_url + "/shaders/default.frag",
 					// attributes
 					["aPosition", "aNormal", "aTexCoord"],
 					// uniforms
 					["uAmbientRadiance", "uLightScale", "uPVMatrix", "uMMatrix", "uMMatrixIT",
 					 "uLightLocation", "uColor", "uShapeSettings", "uShapeTexture",
 					 "uDepthBiasPVMMatrix", "uShadowMap"]);
+
+	// terrain shaders
+	this.addProgram("terrain", variable.theme_url + "/shaders/procedural.vert", variable.theme_url + "/shaders/default.frag",
+					// attributes
+					["aPosition", "aNormal", "aTexCoord"],
+					// uniforms
+					["uAmbientRadiance", "uLightScale", "uPVMatrix", "uMMatrix", "uMMatrixIT",
+					 "uLightLocation", "uColor", "uShapeSettings", "uShapeTexture",
+					 "uDepthBiasPVMMatrix", "uShadowMap", "uMBeforeMatrix"]);
 }
 
 
@@ -1096,8 +1150,9 @@ SpaceLibGL.prototype.initShaders = function() {
  * @Override
  */
 SpaceLibGL.prototype.initTextures = function() {
-	this.addTexture("earth", new Uint8Array([50, 50, 50, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/res/images/earth.jpg");
-	this.setCubeMap("cubemap", "cubemap", [0,0,0,255], variable.theme_url + "/res/images/cubemap", 1024, ".png");
+	this.addTexture("rock", new Uint8Array([139, 69, 19, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/images/rock.jpg");
+	this.addTexture("earth", new Uint8Array([50, 50, 50, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/images/earth.jpg");
+	this.setCubeMap("cubemap", "cubemap", [0,0,0,255], variable.theme_url + "/images/cubemap", 1024, ".png");
 }
 
 /*
@@ -1107,41 +1162,43 @@ SpaceLibGL.prototype.initTextures = function() {
 SpaceLibGL.prototype.setScene = function() {
 
 	// add a lights
-	this.addLight(LightType.POINT, [-2500, 1000, 0], [4000000.0, 4000000.0, 4000000.0], 100.0);
+	this.addLight(LightType.POINT, [-2.5, 1, 2.5], [4.0, 4.0, 4.0], 0.1);
+	// this.addLight(LightType.POINT, [0, 0.5, 0], [0.0004, 0.0004, 0.0004], 0.001);
+	// this.addLight(LightType.POINT, [-2.5, 1, 0], [4.0, 4.0, 4.0], 0.1);
+	// this.addLight(LightType.POINT, [0, 1, -2.5], [4.0, 4.0, 4.0], 0.1);
 	this.lightScale = 10.0; // inverse scene brightness (higher is darker)
 	this.ambientRadiance = [1.5, 1.5, 1.5];
+
+	// add space ship
+	this.spaceShip = new SpaceShip(this);
+	this.spaceShip.setPos([-0.1, 0.1, 0]);
 
 	// add shapes
 	var trans = mat4.create();
 
-	this.spaceShip = new SpaceShip(this);
 	mat4.identity(trans);
-	// mat4.translate(trans, trans, [0, 5, 0]);
-	// mat4.rotate(trans, trans, degToRad(90), [1, 0, 1]);
-	// mat4.rotateX(trans, trans, degToRad(90));
-	// mat4.rotateY(trans, trans, degToRad(0));
-	this.spaceShip.setModel(trans);
-
-	mat4.identity(trans);
-	mat4.translate(trans, trans, [0, -2, 0]);
-	mat4.scale(trans, trans, [10, 0.3, 10]);
+	mat4.translate(trans, trans, [-0.1, 0.098, 0]);
+	mat4.scale(trans, trans, [0.01, 0.0003, 0.01]);
 	this.addPrimitive(ShapeType.SPHERE, trans, [0.5, 0.5, 0.5, 1.0], [64.0, 0.0, 0.0, 0.0], "");
 
 	mat4.identity(trans);
-	mat4.translate(trans, trans, [-9, 1, 0]);
-	mat4.scale(trans, trans, [0.2, 3, 10]);
+	mat4.translate(trans, trans, [-0.109, 0.101, 0]);
+	mat4.scale(trans, trans, [0.0002, 0.003, 0.01]);
 	this.addPrimitive(ShapeType.CYLINDER, trans, [0.7, 0.7, 0.7, 1.0], [64.0, 0.0, 0.0, 0.0], "");
 
 	mat4.identity(trans);
-	mat4.translate(trans, trans, [-7, 2, 0]);
-	mat4.scale(trans, trans, [1, 5, 1]);
+	mat4.translate(trans, trans, [-0.107, 0.102, 0]);
+	mat4.scale(trans, trans, [0.001, 0.005, 0.001]);
 	this.addPrimitive(ShapeType.CYLINDER, trans, [0.7, 0.7, 0.7, 1.0], [64.0, 0.0, 0.0, 0.0], "");
 
 	mat4.identity(trans);
-	// mat4.translate(trans, trans, [8, -1, 0.5]);
-	mat4.translate(trans, trans, [0, 0, -2000]);
-	mat4.scale(trans, trans, [1000, 1000, 1000]);
+	mat4.translate(trans, trans, [0, 1.5, -5]);
+	mat4.scale(trans, trans, [1, 1, 1]);
 	this.addPrimitive(ShapeType.SPHERE, trans, [0.7, 0.7, 0.7, 1.0], [64.0, 0.0, 1.0, 0.0], "earth");
+
+	mat4.identity(trans);
+	mat4.scale(trans, trans, [1, 1, 1]);
+	this.terrainPrim = this.createPrimitive(ShapeType.QUADXZ, trans, [0.81, 0.41, 0.11, 1.0], [64.0, 0.0, 1.0, 0.0], "rock");
 }
 
 
@@ -1155,14 +1212,17 @@ function main() {
 	var canvas_div = document.getElementById("canvas_div");
 
 	var spaceLib = new SpaceLibGL();
-	spaceLib.init(canvas, canvas_div, ["WEBKIT_WEBGL_depth_texture", "WEBGL_depth_texture"] );
+	spaceLib.init(canvas, canvas_div, ["WEBKIT_WEBGL_depth_texture", "WEBGL_depth_texture"]);
 
-	// spaceLib.addOrbitCam(-25.0, 0.0, 15.0, [0, 0, 0], 45.0, 1.0, 0.1, 5000.0);
-	spaceLib.addOrbitCam(-25.0, 0.0, 0.0, [0, 0, 0], 45.0, 1.0, 0.1, 5000.0);
-	// spaceLib.addOrbitCam(0.0, 0.0, 0.0, [0, 0, 0], 45.0, 1.0, 0.1, 5000.0);
+	// spaceLib.addOrbitCam(-0.025, 0.0, 15.0, [0, 0, 0], 45.0, 1.0, 0.0001, 5.0);
+	spaceLib.addOrbitCam(-0.025, 0.0, 0.0, [0, 0, 0], 45.0, 1.0, 0.0001, 50.0);
+	// spaceLib.addOrbitCam(0.0, 0.0, 0.0, [0, 0, 0], 45.0, 1.0, 0.0001, 5.0);
 
-	spaceLib.setShadowFramebuffer();
-	spaceLib.setShadowCamera();
+	// spaceLib.setShadowFramebuffer();
+	// spaceLib.setShadowCamera();
+
+	spaceLib.addHTMLElement("error");
+	spaceLib.setTogglePanels([["controlsHeader", "controlsToggle"]]);
 
 	spaceLib.start();
 }

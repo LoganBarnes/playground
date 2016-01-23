@@ -3,16 +3,24 @@ precision highp int;
 
 attribute vec2 aPosition;
 
-varying vec2 vUV;
-
+uniform bool uFrame;
 uniform bool uSwitchX;
 
-void main()
-{
-	if (uSwitchX)
-		vUV = aPosition * vec2(-0.5, 0.5) + vec2(0.5);
-	else
-		vUV = aPosition * vec2(0.5, 0.5) + vec2(0.5);
+varying vec2 vUV;
 
-	gl_Position = vec4(aPosition, -1, 1);
+void main(void)
+{
+    if (uFrame)
+    {
+        gl_Position = vec4(aPosition * vec2(2.0, -2.0) - vec2(1.0, -1.0), -1.0, 1.0);
+    }
+    else
+    {
+        if (uSwitchX)
+            vUV = aPosition * vec2(-0.5) + vec2(0.5);
+        else
+            vUV = aPosition * vec2(0.5, -0.5) + vec2(0.5);
+
+        gl_Position = vec4(aPosition, 0.0, 1);
+    }
 }

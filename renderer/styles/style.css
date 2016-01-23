@@ -12,15 +12,11 @@ h2 {
 	text-align: center;
 	padding: 10px;
 }
-span {
-	display: inline-block;
-	margin-left: 10px;
-	width: 50px;
-	text-align: center;
-	font-weight: bold;
-	border: 1px solid #efefef;
-	border-radius: 3px;
-	background-color: white;
+
+.dull .dullable {
+	opacity: 0.4;
+	filter: alpha(opacity=40); /* For IE8 and earlier */
+	pointer-events: none;
 }
 
 #options_div {

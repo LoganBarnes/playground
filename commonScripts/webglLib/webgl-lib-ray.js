@@ -1225,6 +1225,7 @@ LibGL.prototype.setCameraAndGlobalUniforms = function(program) {
 	this.gl.uniform1i(this.getUniform(program, "uAntialiasing"), this.antialiasing);
 	this.gl.uniform1i(this.getUniform(program, "uUseShadows"), this.useShadows);
 	this.gl.uniform1f(this.getUniform(program, "uBrightness"), this.brightness);
+	this.gl.uniform1i(this.getUniform(program, "uIterations"), this.reflectionIterations);
 }
 
 /*

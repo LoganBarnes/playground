@@ -6,8 +6,9 @@ var ShapeType = Object.freeze({
 
 	CYLINDER: 			0,
 	SPHERE: 			1,
-	QUAD: 				2,
-	NUM_SHAPE_TYPES: 	3
+	QUADXY: 			2,
+	QUADXZ: 			3,
+	NUM_SHAPE_TYPES: 	4
 	// CONE
 	// CUBE
 	// TORUS

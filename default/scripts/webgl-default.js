@@ -1,7 +1,7 @@
 
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
 var variable = [];
-variable.theme_url = ".";
+variable.theme_url = "./res";
 /* REMOVE THIS BEFORE USING WITH WORDPRESS!!!! */
 
 /*
@@ -85,14 +85,14 @@ SubLibGL.prototype.onStartTick = function() {
 SubLibGL.prototype.initShaders = function() {
 
 	// cubemap shaders
-	this.addProgram("cubemap", variable.theme_url + "/res/shaders/cubemap.vert", variable.theme_url + "/res/shaders/cubemap.frag",
+	this.addProgram("cubemap", variable.theme_url + "/shaders/cubemap.vert", variable.theme_url + "/shaders/cubemap.frag",
 					// attributes
 					["aPosition"],
 					// uniforms
 					["uPMatrix", "uVMatrix", "uEnvMap"]);
 
 	// default shaders
-	this.addProgram("default", variable.theme_url + "/res/shaders/default.vert", variable.theme_url + "/res/shaders/default.frag",
+	this.addProgram("default", variable.theme_url + "/shaders/default.vert", variable.theme_url + "/shaders/default.frag",
 					// attributes
 					["aPosition", "aNormal", "aTexCoord"],
 					// uniforms
@@ -105,9 +105,9 @@ SubLibGL.prototype.initShaders = function() {
  * @Override
  */
 SubLibGL.prototype.initTextures = function() {
-	this.addTexture("earth", new Uint8Array([50, 50, 50, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/res/images/earth.jpg");
-	this.addTexture("logo", new Uint8Array([50, 50, 50, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/res/images/webgl_logo.png");
-	this.setCubeMap("labelledSky", "cubemap", [127,127,127,255], variable.theme_url + "/res/images/cubemap", 1024, ".jpg");
+	this.addTexture("earth", new Uint8Array([50, 50, 50, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/images/earth.jpg");
+	this.addTexture("logo", new Uint8Array([50, 50, 50, 255]), 1, 1, this.gl.UNSIGNED_BYTE, variable.theme_url + "/images/webgl_logo.png");
+	this.setCubeMap("labelledSky", "cubemap", [127,127,127,255], variable.theme_url + "/images/cubemap", 1024, ".jpg");
 }
 
 /*
@@ -134,15 +134,15 @@ SubLibGL.prototype.setScene = function() {
 	mat4.translate(trans, trans, [0, -3, 0]);
 	mat4.rotateY(trans, trans, degToRad(45));
 	mat4.scale(trans, trans, [2, 1, 1]);
-	this.addPrimitive(ShapeType.QUAD, trans, [0.4, 1, 0.4], [64.0, 0.0, 1.0, 0.0], "logo");
+	this.addPrimitive(ShapeType.QUADXY, trans, [0.4, 1, 0.4], [64.0, 0.0, 1.0, 0.0], "logo");
 
 	mat4.rotateY(trans, trans, degToRad(180));
-	this.addPrimitive(ShapeType.QUAD, trans, [0.4, 1, 0.4], [64.0, 0.0, 1.0, 0.0], "logo");
+	this.addPrimitive(ShapeType.QUADXY, trans, [0.4, 1, 0.4], [64.0, 0.0, 1.0, 0.0], "logo");
 
 	// add the LTB model
 	mat4.identity(trans);
 	mat4.translate(trans, trans, [0, 3, 0]);
-	this.addModelJSON("ltb", variable.theme_url + "/res/objects/ltb.json",
+	this.addModelJSON("ltb", variable.theme_url + "/objects/ltb.json",
 						trans, [1.0, 1.0, 1.0, 1.0], [64.0, 0.0, 0.0, 0.0], "");
 }
 

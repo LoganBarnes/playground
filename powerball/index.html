@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Alex's Magic Numbers</title>
+
+	<style type="text/css">
+
+		.circle
+		{
+			width:100px;
+			height:100px;
+			border-radius:50px;
+			font-size:50px;
+			color:#000;
+			line-height:100px;
+			text-align:center;
+		}
+
+		.normal
+		{
+			background:#fff
+		}
+
+		.power
+		{
+			background: #f00
+		}
+
+	</style>
+</head>
+<body style="background:#888">
+
+	<h2>Alex's Magic Numbers:</h2><br>
+
+
+	<div id="ball1" class="circle normal" style="float: left"></div>
+	<div id="ball2" class="circle normal" style="float: left"></div>
+	<div id="ball3" class="circle normal" style="float: left"></div>
+	<div id="ball4" class="circle normal" style="float: left"></div>
+	<div id="ball5" class="circle normal" style="float: left"></div>
+	<div id="ball6" class="circle power" style="float: left"></div>
+
+	<br><br><br><br><br><br><br>
+
+	<button onclick="reset()" >reset</button>
+
+	<script type="text/javascript">
+
+	function reset() {
+		document.getElementById("ball1").innerHTML = "" + Math.floor((Math.random() * 69) + 1);
+		document.getElementById("ball2").innerHTML = "" + Math.floor((Math.random() * 69) + 1);
+		document.getElementById("ball3").innerHTML = "" + Math.floor((Math.random() * 69) + 1);
+		document.getElementById("ball4").innerHTML = "" + Math.floor((Math.random() * 69) + 1);
+		document.getElementById("ball5").innerHTML = "" + Math.floor((Math.random() * 69) + 1);
+		document.getElementById("ball6").innerHTML = "" + Math.floor((Math.random() * 26) + 1);
+	}
+
+	reset();
+
+	</script>
+
+</body>
+</html>

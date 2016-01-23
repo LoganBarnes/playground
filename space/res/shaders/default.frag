@@ -104,9 +104,9 @@ void main(){
 		// color *= vis;
 		color += uColor * uAmbientRadiance;
 		
-		if (uShapeSettings[2] > 0.5)
+		if (uShapeSettings[2] > 0.0)
 		{
-			color *= texture2D(uShapeTexture, vTexc).xyz;
+			color *= texture2D(uShapeTexture, vTexc * uShapeSettings[2]).xyz;
 		}
 
 		color /= uLightScale;

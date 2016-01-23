@@ -6,21 +6,59 @@ body {
 	overflow:hidden;
 	margin: 0;
 }
-
 canvas {
 	width: 100%;
 	height: 100%;
 }
-#info {
+
+
+.text_center {
+	text-align: center;
+}
+.overlay {
 	position: absolute;
-	top: 0;
-	left: 0;
+	padding-right: 10px;
+	padding-left: 10px;
+	color: lightgray;
+	background-color: rgba(0, 0, 0, 0.5);
 	z-index: 50;
-	color: white;
-	font-size: 20px;
+	border: solid gray 1px;
+}
+.top {
+	top: 0;
+}
+.left {
+	left: 0;
+}
+.right {
+	right: 0;
+}
+.bottom {
+	bottom: 0;
 }
 
 
+#canvas_div {
+	position: relative;
+}
+#info {
+	color: white;
+	font-size: 20px;
+	background-color: rgba(0, 0, 0, 0);
+	border: none;
+}
+#controlsHeader {
+	text-align: right;
+}
+#controlsToggle {
+	display: none;
+}
+#error {
+	color: red;
+	border: none;
+}
+
+/* loading page */
 #page {
 	display: none;
 }

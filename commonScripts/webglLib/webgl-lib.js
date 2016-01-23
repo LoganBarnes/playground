@@ -268,7 +268,8 @@ var LibGL = function() {
 	this.ambientRadiance = vec3.create(); // ambient radiance light in the scene
 
 	// a single instance of each shape type
-	this.quad = null;
+	this.quadXY = null;
+	this.quadXZ = null;
 	this.sphere = null;
 	this.cylinder = null;
 	this.cubemapVBO = null;
@@ -296,10 +297,20 @@ var LibGL = function() {
 /**
  * WebGL context and extensions setup
  */
-LibGL.prototype.setUpGL = function(canvas, extensions) {
+LibGL.prototype.setUpGL = function(canvas, extensions, webglVersion) {
+	webglVersion = typeof webglVersion !== "undefined" ? webglVersion : 1;
 
 	try {
-		this.gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+		if (webglVersion == 2) {
+			this.gl = canvas.getContext("webgl2") || canvas.getContext("experimental-webgl2");// || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+			
+			if (!this.gl) {
+				console.log("Couldn't initialize WebGL 2.0")
+			}
+		}
+		if (webglVersion == 1 || !this.gl) {
+			this.gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+		}
 	} catch (e) {}
 
 	if (!this.gl) {
@@ -450,11 +461,13 @@ var LightType = Object.freeze({
  * Loads all primitive shape classes
  */
 LibGL.prototype.initShapes = function() {
-	this.quad = new Quad(50, 50, 1.0);
+	this.quadXY = new QuadXY(50, 50, 1.0);
+	this.quadXZ = new QuadXZ(50, 50, 1.0);
 	this.sphere = new Sphere(50, 50, 1.0);
 	this.cylinder = new Cylinder(50, 50, 1.0, 1.0);
 
-	this.quad.createVBO(this.gl, true, true);
+	this.quadXY.createVBO(this.gl, true, true);
+	this.quadXZ.createVBO(this.gl, true, true);
 	this.sphere.createVBO(this.gl, true, true);
 	this.cylinder.createVBO(this.gl, true, true);
 }
@@ -485,17 +498,15 @@ LibGL.prototype.renderPrimitives = function(program, callback, args, primitives)
 	
 	// iterate through the primitives
 	var len = primitives.length;
-	var prim;
 	for (var i = 0; i < len; ++i) {
-		this.renderPrimitive(i, program, callback, args, primitives);
+		this.renderPrimitive(primitives[i], program, callback, args);
 	}
 }
 
 /*
  * Renders a single primitive
  */
-LibGL.prototype.renderPrimitive = function(index, program, callback, args, primitives) {
-	var prim = primitives[index];
+LibGL.prototype.renderPrimitive = function(prim, program, callback, args) {
 
 	// use the callback function to set uniforms for this shape
 	callback(prim, program, args);
@@ -522,11 +533,17 @@ LibGL.prototype.renderPrimitive = function(index, program, callback, args, primi
 											this.getAttribute(program, "aTexCoord"));
 			this.sphere.render(this.gl);
 			break;
-		case ShapeType.QUAD:
-			this.quad.bindBuffer(this.gl,   this.getAttribute(program, "aPosition"),
+		case ShapeType.QUADXY:
+			this.quadXY.bindBuffer(this.gl, this.getAttribute(program, "aPosition"),
 											this.getAttribute(program, "aNormal"),
 											this.getAttribute(program, "aTexCoord"));
-			this.quad.render(this.gl);
+			this.quadXY.render(this.gl);
+			break;
+		case ShapeType.QUADXZ:
+			this.quadXZ.bindBuffer(this.gl, this.getAttribute(program, "aPosition"),
+											this.getAttribute(program, "aNormal"),
+											this.getAttribute(program, "aTexCoord"));
+			this.quadXZ.render(this.gl);
 			break;
 		default:
 			break;
@@ -1167,7 +1184,7 @@ LibGL.prototype.renderCubeMap = function(name) {
 LibGL.prototype.setTogglePanels = function(panels) {
 
 	var num = panels.length;
-	for (var i = 0; i < 2; ++i) {
+	for (var i = 0; i < num; ++i) {
 		this.setTogglePanel(panels[i]);
 	}
 }
@@ -1662,11 +1679,11 @@ LibGL.prototype.setScene = function() {}
 /*
  * Initializes everything needed to run the program.
  */
-LibGL.prototype.init = function(canvas, canvas_div, extensions) {
+LibGL.prototype.init = function(canvas, canvas_div, extensions, webglVersion) {
 	this.canvas_div = canvas_div;
 
 	// set up the WebGL context; load shaders and textures
-	this.setUpGL(canvas, extensions)
+	this.setUpGL(canvas, extensions, webglVersion)
 	this.initShaders();
 	this.initTextures();
 

@@ -2,7 +2,7 @@ precision highp float;
 precision highp int;
 
 // epsilon and infinity
-const float EPS = 0.0001;
+const float EPS = 0.001;
 const float INF = 1000.0;
 const float PI = 3.14159265359;
 
@@ -67,6 +67,7 @@ struct Intersection
 
 const int MAX_SHAPES = 10;
 const int MAX_LIGHTS = 1;
+const int MAX_ITERATIONS = 5;
 
 uniform mat4 uScaleViewInv;
 uniform vec4 uEyePos;
@@ -79,6 +80,8 @@ uniform Light lights[MAX_LIGHTS];
 // uniform int uNumLights;
 // uniform sampler2D uNormalTex;
 
+uniform int uIterations;
+
 // global vars
 uniform bool uAntialiasing;
 uniform bool uUseShadows;
@@ -87,9 +90,17 @@ uniform float uBrightness;
 int NUM_SHAPES;
 
 
-//////////////////////////////////////////////
-//                   UTIL                   //
-//////////////////////////////////////////////
+                                                      
+// 		8 8888      88 8888888 8888888888  8 8888 8 8888         
+// 		8 8888      88       8 8888        8 8888 8 8888         
+// 		8 8888      88       8 8888        8 8888 8 8888         
+// 		8 8888      88       8 8888        8 8888 8 8888         
+// 		8 8888      88       8 8888        8 8888 8 8888         
+// 		8 8888      88       8 8888        8 8888 8 8888         
+// 		8 8888      88       8 8888        8 8888 8 8888         
+// 		` 8888     ,8P       8 8888        8 8888 8 8888         
+// 		  8888   ,d8P        8 8888        8 8888 8 8888         
+// 		   `Y88888P'         8 8888        8 8888 8 888888888888 
 
 mat4 transpose(in mat4 inMatrix) {
 	vec4 i0 = inMatrix[0];
@@ -125,7 +136,7 @@ void initRay(inout Ray ray, in vec3 origin, in vec3 dir)
 //                LIGHTING                  //
 //////////////////////////////////////////////
 
-vec3 calcLighting(in Ray r, in vec3 norm, in vec3 pointToLight, in vec4 color, in vec4 settings)
+vec3 calcDiffuse(in vec3 norm, in vec3 pointToLight, in vec4 color, in vec4 settings, inout vec3 ambient)
 {
 	float intensity = max(0.0, dot(norm, normalize(pointToLight)));
 
@@ -134,12 +145,18 @@ vec3 calcLighting(in Ray r, in vec3 norm, in vec3 pointToLight, in vec4 color, i
 	float b = 1.0 / (attenRadius * attenRadius * 0.1);
 	float atten = 1.0 / (1.0 + a * dist + b * dist * dist);
 	atten = 1.0;
-	vec3 reflection = normalize(-reflect(pointToLight, norm));
-	intensity += pow(max(0.0, dot(-r.d, reflection)), settings.x);
 
-	// float ambient = R * 0.2;
-	
-	return vec3((atten * intensity * R + atten * 2.0));// * color.xyz);
+	ambient = atten * 2.0 * color.rgb;
+
+	vec3 diffuse = vec3(atten * intensity * R) * color.xyz;
+	return diffuse;
+}
+
+vec3 calcSpecular(in Ray r, in vec3 norm, in vec3 pointToLight, in vec4 color, in vec4 settings)
+{
+	vec3 reflection = normalize(-reflect(pointToLight, norm));
+	vec3 specular = vec3(pow(max(0.0, dot(-r.d, reflection)), settings.x)) * R ;
+	return specular;
 }
 
 
@@ -898,13 +915,13 @@ int intersectWorld(in Ray r, out vec4 n, out Shape s, in int exclude)
 //                RAYTRACE                  //
 //////////////////////////////////////////////
 
-vec4 raytrace(in Ray r)
+vec4 getRayColor(in Ray r, inout int index, out vec3 p, out vec3 normal)
 {
 	vec4 color = vec4(0, 0, 0, 1);
 	vec4 norm = vec4(INF);
 	
 	Shape shape;
-	int index = intersectWorld(r, norm, shape, -1);
+	index = intersectWorld(r, norm, shape, index);
 
 	if (index < 0)
 		return vec4(vec3(0.0), 1.0);
@@ -912,31 +929,59 @@ vec4 raytrace(in Ray r)
 	if (shape.type == SPHERE && shape.settings[3] > 0.5)
 		return vec4(vec3(R * 1.5), 1.0);
 
-	vec3 p = (r.o + norm.w * r.d) + (norm.xyz * EPS);
+	p = (r.o + norm.w * r.d);
 
 	vec3 vecToLight = lights[0].posDir - p;
 	Ray rayToLight;
 	initRay(rayToLight, p + norm.xyz * EPS, normalize(vecToLight));
 
 	float dist = length(vecToLight);
-	if (uUseShadows && intersectWorldQuick(rayToLight, dist, index))
-	{
-		// float a = 0.0;
-		// float b = 1.0 / (attenRadius * attenRadius * 0.1);
-		// float atten = 1.0 / (1.0 + a * dist + b * dist * dist);
-		color = vec4(vec3(R * 0.2), 1);
-	}
+	vec3 ambient = vec3(0.0);
+
+	if (shape.settings[2] > 0.5) // selected
+		color = vec4(calcDiffuse(norm.xyz, vecToLight, vec4(0.5, 1.0, 0.5, 1.0), shape.settings, ambient), 1);
 	else
-		color = vec4(calcLighting(r, norm.xyz, vecToLight, shape.color, shape.settings), 1);
+		color = vec4(calcDiffuse(norm.xyz, vecToLight, shape.color, shape.settings, ambient), 1);
+
+	if (uUseShadows && intersectWorldQuick(rayToLight, dist, index))
+		color = vec4(0, 0, 0, 1);
+	else
+		color.rgb += calcSpecular(r, norm.xyz, vecToLight, vec4(1), shape.settings);
+	color.rgb += ambient;
 
 	if (shape.settings[2] > 0.5)
 		color.xz *= 0.5;
 
-	// return vec4(color.x < -0.1 ? 0.3 : color.x,
-	// 			color.y < -0.1 ? 0.3 : color.y,
-	// 			color.z < -0.1 ? 0.3 : color.z,
-	// 			1.0);
-	// color = vec4(vec3(norm.w / 10.0), 1.0);
+	normal = norm.xyz;
+
+	return color;
+}
+
+vec4 raytrace(in Ray r)
+{
+	vec3 pos, norm;
+	int index = -1;
+	vec4 clr;
+	vec4 color = getRayColor(r, index, pos, norm);
+	vec3 reflection = reflect(r.d, norm);
+	initRay(r, pos + norm * EPS, reflection);
+
+	for (int i = 0; i < MAX_ITERATIONS; ++i)
+	{
+		if (i >= uIterations)
+			break;
+
+		clr = getRayColor(r, index, pos, norm);
+
+		if (index == -1)
+			break;
+		else
+			color *= clr;
+
+		reflection = reflect(r.d, norm);
+		initRay(r, pos + norm * EPS, reflection);
+	}
+
 	return color;
 }
 
